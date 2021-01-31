@@ -1,0 +1,6 @@
+node_modules
+dist
+
+ps2discord.json
+ps2discord.*.json
+!ps2discord.example.json

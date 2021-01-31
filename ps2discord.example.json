@@ -1,0 +1,25 @@
+{
+  "discordBot": {
+    "token": "token-here"
+  },
+  "discordGuild": {
+    "guildId": "guild-id-here",
+    "channelIdRules": "channel-id-here",
+    "channelIdWelcome": "channel-id-here",
+    "channelIdOutfit": "channel-id-here",
+    "channelIdFacility": "channel-id-here",
+    "categoryIdOps": "category-id-here",
+    "channelIdOpsLobby": "channel-id-here",
+    "channelIdOps": "channel-id-here",
+    "channelIdMentoring": "channel-id-here",
+    "roleIdLeader": "role-id-here",
+    "roleIdOfficer": "role-id-here",
+    "roleIdSpecialist": "role-id-here",
+    "roleIdMember": "role-id-here",
+    "categoryIdSignups": "category-id-here"
+  },
+  "ps2": {
+    "apiToken": "token-here",
+    "outfitId": "outfit-id-here"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "name": "ps2discord",
+  "version": "0.1.0",
+  "description": "PlanetSide 2 Discord bot",
+  "scripts": {
+    "start": "npm run _boot",
+
+    "start:dev": "npm run dist:dev && cd dist/ && npm run _boot",
+    "start:prod": "npm run dist:prod && cd dist/ && npm run _boot",
+
+    "dist:dev": "npm run _prepare && npm run _config:dev && npm run _build && npm run _prepublish",
+    "dist:prod": "npm run _prepare && npm run _config:prod && npm run _build && npm run _prepublish",
+
+    "_prepare": "rm -rf dist/ && mkdir dist",
+    "_config:dev": "cp ps2discord.development.json dist/ps2discord.json",
+    "_config:prod": "cp ps2discord.production.json dist/ps2discord.json",
+    "_build": "tsc",
+    "_prepublish": "cp package.json dist/ && cp package-lock.json dist/",
+    "_boot": "node bin/app.js"
+  },
+  "author": "pieterv",
+  "dependencies": {
+    "discord.js": "^12.5.1",
+    "erlpack": "github:discord/erlpack",
+    "lodash": "^4.17.20",
+    "luxon": "^1.25.0",
+    "p-queue": "^6.6.2",
+    "tslint": "^6.1.3",
+    "typed-rest-client": "^1.8.0",
+    "typescript": "^3.9.7",
+    "ws": "^7.4.0",
+    "xregexp": "^4.4.0",
+    "zlib-sync": "^0.1.7"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.165",
+    "@types/luxon": "^1.25.0",
+    "@types/node": "^12.19.8",
+    "@types/ws": "^7.4.0",
+    "@types/xregexp": "^4.3.0"
+  },
+  "optionalDependencies": {
+    "bufferutil": "^4.0.2",
+    "utf-8-validate": "^5.0.3"
+  }
+}
