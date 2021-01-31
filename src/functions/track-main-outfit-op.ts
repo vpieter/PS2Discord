@@ -12,9 +12,6 @@ import { consoleCatch, wait } from '../utils';
 import PQueue from 'p-queue';
 
 const experienceNamesHardcoded = {
-  // '1': 'kill',
-  // '278': 'Priority kill',
-  // '279': 'High priority kill',
   '4': 'Heal',
   '51': 'Squad heal',
   '7': 'Revive',
@@ -103,10 +100,6 @@ export async function trackMainOutfitOp(runningMessage: Message, characterId?: s
       {
         characters: characterId ? [characterId] : ps2MainOutfit.members.map(member => member.id),
         experienceIds: [
-          // '1', /* kill */
-          // '278', /* Priority kill */
-          // '279', /* High priority kill */
-
           '4', /* Heal */
           '51', /* Squad heal */
 
@@ -241,7 +234,7 @@ export async function trackMainOutfitOp(runningMessage: Message, characterId?: s
   const sendSoloOpReport = async (soloReport: { user: User, characterId: string }): Promise<void> => {
     const member = ps2MainOutfit.members.find(member => member.id === soloReport.characterId);
     if (!member) throw('Solo op report member not found');
-    
+
     const killEntry = killLeaderboard.entries.find(leaderboardEntry => leaderboardEntry.member.id === soloReport.characterId);
     const reviveEntry = reviveLeaderboard.entries.find(leaderboardEntry => leaderboardEntry.member.id === soloReport.characterId);
     const healEntry = healLeaderboard.entries.find(leaderboardEntry => leaderboardEntry.member.id === soloReport.characterId);
@@ -261,7 +254,7 @@ export async function trackMainOutfitOp(runningMessage: Message, characterId?: s
       .addField('\u200b', '\u200b', false)
       .addField('Transport assists', transportEntry?.score ?? 0, true)
       .addField('Transport assists rank', transportEntry?.rank ?? 'n/a', true);
-    
+
     await soloReport.user.send(soloEmbed);
   };
 
@@ -275,7 +268,7 @@ export async function trackMainOutfitOp(runningMessage: Message, characterId?: s
     const sortedMemberEvents = sortBy(groupBy(filteredEvents, event => event.attacker_character_id), memberEvents => (memberEvents.length * -1));
     let rank = 0;
     sortedMemberEvents.forEach(memberKills => {
-      const score = memberKills.length
+      const score = memberKills.length;
       const member = ps2MainOutfit.members.find(member => member.id === memberKills[0].attacker_character_id);
       if (!leaderboard.entries.filter(entry => entry.score === score).length) rank++;
       if (!member) throw('unexpected leaderboard member not found.');
@@ -317,7 +310,7 @@ export async function trackMainOutfitOp(runningMessage: Message, characterId?: s
       leaderboardText += `${rankEntries.map(entry => entry.member.name).join(', ')} with ${rankEntries[0].score} ${eventName.toLowerCase()}`;
     }
     return embed.addField(`${eventName} MVP`, leaderboardText, false)
-  }
+  };
 
   // trackMainOutfitOp
   const runningOp: Op = {

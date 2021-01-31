@@ -13,14 +13,14 @@ export interface FactionDTO {
   faction_id: string,
   name: PS2Translations,
   code_tag: string,
-}
+};
 
 export interface FactionVM {
   id: string,
   name: string,
   alias: string,
   color?: string,
-}
+};
 
 // Zones
 export interface ZoneDTO {
@@ -74,7 +74,7 @@ export interface OutfitDTO {
     },
     faction_id: string
   },
-}
+};
 
 export interface OutfitVM {
   id: string,

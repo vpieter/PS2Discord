@@ -3,7 +3,6 @@ import { trackMainOutfitOp } from '../functions';
 import { discordGuild, runningActivities, discordClient, ps2MainOutfit, discordBotUser } from '../app';
 import { Activities, DiscordChannelIdOps, DiscordRoleIdLeader, DiscordRoleIdMember, DiscordRoleIdOfficer, DiscordRoleIdSpecialist } from '../consts';
 import { TextChannel } from 'discord.js';
-import { values } from 'lodash';
 
 enum SubCommand {
   'Start' = 'start',
@@ -78,7 +77,7 @@ export async function OpCommandHandler (command: Command): Promise<void> {
         await command.message.channel.send(`Cannot find member '${command.param}'.`);
         return;
       }
-  
+
       const soloReportUser = { user: command.message.author, characterId: member.id };
       if (runningOp.status <= Status.Running) {
         (runningOp as Op).soloReports.push(soloReportUser);

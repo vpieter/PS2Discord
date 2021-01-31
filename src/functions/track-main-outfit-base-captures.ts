@@ -113,7 +113,7 @@ async function sendBaseCaptureMessage(facility: FacilityVM): Promise<Message> {
   const embed = new MessageEmbed()
     .setTitle(`${ps2MainOutfit.alias} captured ${facility.name}`)
     .addField('Continent', `${facility.zone.name}`, true)
-    .addField('Type', `${facility.type}`, true)
+    .addField('Type', `${facility.type}`, true);
 
   const channel = await discordClient.channels.fetch(DiscordChannelIdFacility);
   if (channel.type !== 'text') throw(`Cannot send base capture message in non-text channel (${channel.id}).`);

@@ -1,5 +1,5 @@
-import { Commands, OpsRole, RoleTemplates } from './consts';
-import { Message as DiscordMessage, Message, User, VoiceChannel } from 'discord.js';
+import { Commands } from './consts';
+import { Message as DiscordMessage, User, VoiceChannel } from 'discord.js';
 import { DeathDto, GainExperienceDto } from './ps2-streaming-client/types';
 import { FacilityVM } from './ps2-rest-client/types';
 
@@ -31,20 +31,4 @@ export type Op = {
 export type Training = {
   voiceChannels: Array<VoiceChannel>,
   stop: (training: Training)=>void,
-};
-
-export type SignupChannel = {
-  title: string,
-  description: string,
-  date: string,
-  time: string,
-  embedMessage: Message,
-  templates: RoleTemplates[],
-  signups: Record<string, OpsRole | null>,
-  altSignups: Record<string, OpsRole[]>,
-};
-
-export type SignupTemplate = {
-  description: string,
-  roleTemplate: Record<OpsRole, number>,
 };

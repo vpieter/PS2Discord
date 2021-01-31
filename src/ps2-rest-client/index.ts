@@ -55,7 +55,7 @@ export class PS2RestClient
     });
 
     return result;
-  }
+  };
 
   public getZones = async (): Promise<Array<ZoneVM>> => {
     const queryParams = {
@@ -85,7 +85,7 @@ export class PS2RestClient
       'c:limit': '1',
       'c:lang': 'en',
       'c:show': ['facility_id', 'facility_name', 'facility_type', 'zone_id'].join(','),
-    }
+    };
 
     const resultPromise = this._rest.get<PS2RestResult<FacilityDTO>>(
       PS2RestRequest.MapRegion,
@@ -113,7 +113,7 @@ export class PS2RestClient
       'c:lang': 'en',
       'c:resolve': 'leader(name.first,faction_id)',
       'c:hide': ['name_lower', 'alias_lower', 'time_created', 'time_created_date'].join(','),
-    }
+    };
 
     const resultPromise = this._rest.get<PS2RestResult<OutfitDTO>>(
       PS2RestRequest.Outfit,
@@ -175,7 +175,7 @@ export class PS2RestClient
       ...outfit,
       onlineMemberCount,
       members: sortBy(members, member => member.name.toLowerCase()),
-    }
+    };
 
     return result;
   };
@@ -215,7 +215,7 @@ export class PS2RestClient
     const result: OnlineOutfitVM = {
       ...outfit,
       onlineMembers: sortBy(onlineMembers, member => member.toLowerCase()),
-    }
+    };
 
     return result;
   };
@@ -226,7 +226,7 @@ export class PS2RestClient
       ... lookup.characterName ? { 'name.first_lower': lookup.characterName.toLowerCase() } : {},
       'c:limit': '1',
       'c:show': ['faction_id'].join(','),
-    }
+    };
 
     const resultPromise = this._rest.get<PS2RestResult<CharacterFactionDTO>>(
       PS2RestRequest.Character,

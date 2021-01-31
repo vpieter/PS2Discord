@@ -4,8 +4,7 @@ import { Client as DiscordClient, ClientUser as DiscordClientUser, Guild } from 
 import { trackMainOutfitMembersOnline, trackMainOutfitBaseCaptures, setDiscordCommandListeners, setPS2DiscordGreetingListener } from './functions';
 import { DiscordBotToken, DiscordGuildId } from './consts';
 import { consoleCatch } from './utils';
-import { Op, SignupChannel, Training } from './types';
-import { trackSignups } from './functions/track-signups';
+import { Op, Training } from './types';
 
 // Global
 export let ps2RestClient: PS2RestClient;
@@ -19,12 +18,12 @@ export let discordBotUser: DiscordClientUser;
 export let discordGuild: Guild;
 
 export let runningActivities: Record<string, Op | Training> = {};
-export let openSignups: Record<string, SignupChannel> = {};
 
 async function init() {
   discordClient.once('ready', discordReady);
   discordClient.on('error', consoleCatch);
   discordClient.on('rateLimit', consoleCatch);
+
   discordClient.login(DiscordBotToken);
 };
 
@@ -47,7 +46,6 @@ async function discordReady() {
     // PS2Functions
     await setPS2DiscordGreetingListener();
 
-    // await trackSignups();
     await trackMainOutfitBaseCaptures();
     await trackMainOutfitMembersOnline();
 
