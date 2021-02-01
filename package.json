@@ -22,6 +22,8 @@
   "dependencies": {
     "discord.js": "^12.5.1",
     "erlpack": "github:discord/erlpack",
+    "koa": "^2.13.1",
+    "koa-router-find-my-way": "^4.1.0",
     "lodash": "^4.17.20",
     "luxon": "^1.25.0",
     "p-queue": "^6.6.2",
@@ -33,6 +35,7 @@
     "zlib-sync": "^0.1.7"
   },
   "devDependencies": {
+    "@types/koa": "^2.11.7",
     "@types/lodash": "^4.14.165",
     "@types/luxon": "^1.25.0",
     "@types/node": "^12.19.8",

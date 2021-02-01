@@ -5,6 +5,8 @@ import { trackMainOutfitMembersOnline, trackMainOutfitBaseCaptures, setDiscordCo
 import { DiscordBotToken, DiscordGuildId } from './consts';
 import { consoleCatch } from './utils';
 import { Op, Training } from './types';
+import Koa from 'koa';
+import KoaRouter from 'koa-router-find-my-way';
 
 // Global
 export let ps2RestClient: PS2RestClient;
@@ -19,12 +21,27 @@ export let discordGuild: Guild;
 
 export let runningActivities: Record<string, Op | Training> = {};
 
+export let koa = new Koa();
+export let koaRouter = KoaRouter();
+
 async function init() {
   discordClient.once('ready', discordReady);
   discordClient.on('error', consoleCatch);
   discordClient.on('rateLimit', consoleCatch);
 
   discordClient.login(DiscordBotToken);
+
+  koaRouter.get('/', async (ctx) => {
+    ctx.body = 'Hello world!';
+  });
+  koaRouter.get('/outfit', async (ctx) => {
+    ctx.body = ps2MainOutfit;
+  });
+  koaRouter.get('/router', async (ctx) => {
+    ctx.body = koaRouter.prettyPrint();
+  });
+  koa.use(koaRouter.routes());
+  koa.listen(3000);
 };
 
 async function discordReady() {
