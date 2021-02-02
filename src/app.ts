@@ -6,7 +6,8 @@ import { DiscordBotToken, DiscordGuildId } from './consts';
 import { consoleCatch } from './utils';
 import { Op, Training } from './types';
 import Koa from 'koa';
-import KoaRouter from 'koa-router-find-my-way';
+import MyKoaRouter from './my-koa-router';
+import koaCompress from 'koa-compress';
 
 // Global
 export let ps2RestClient: PS2RestClient;
@@ -21,26 +22,30 @@ export let discordGuild: Guild;
 
 export let runningActivities: Record<string, Op | Training> = {};
 
-export let koa = new Koa();
-export let koaRouter = KoaRouter();
+export const koa = new Koa();
+export const koaRouter = new MyKoaRouter();
+export const koaDebugRouter = new MyKoaRouter({ prefix: '/debug' });
 
 async function init() {
+  // discord
   discordClient.once('ready', discordReady);
   discordClient.on('error', consoleCatch);
   discordClient.on('rateLimit', consoleCatch);
 
   discordClient.login(DiscordBotToken);
 
-  koaRouter.get('/', async (ctx) => {
-    ctx.body = 'Hello world!';
-  });
-  koaRouter.get('/outfit', async (ctx) => {
-    ctx.body = ps2MainOutfit;
-  });
-  koaRouter.get('/router', async (ctx) => {
-    ctx.body = koaRouter.prettyPrint();
-  });
-  koa.use(koaRouter.routes());
+  // koa
+  koaRouter.get('index', '/', async (ctx) => { ctx.body = 'Hello world!'; });
+  koa.use(koaRouter.routes()).use(koaRouter.allowedMethods());
+
+  koaDebugRouter.get('ps2Factions', '/ps2Factions', async (ctx) => { ctx.body = ps2Factions; });
+  koaDebugRouter.get('ps2Zones', '/ps2Zones', async (ctx) => { ctx.body = ps2Zones; });
+  koaDebugRouter.get('ps2MainOutfit', '/ps2MainOutfit', async (ctx) => { ctx.body = ps2MainOutfit; });
+  koaDebugRouter.get('ps2ControlledBases', '/ps2ControlledBases', async (ctx) => { ctx.body = ps2ControlledBases; });
+  koaDebugRouter.get('runningActivities', '/runningActivities', async (ctx) => { ctx.body = runningActivities; });
+  koa.use(koaDebugRouter.routes()).use(koaDebugRouter.allowedMethods());
+
+  koa.use(koaCompress());
   koa.listen(3000);
 };
 

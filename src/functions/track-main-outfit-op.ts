@@ -1,4 +1,4 @@
-import { discordGuild, koaRouter, ps2MainOutfit, ps2RestClient, ps2Zones } from '../app';
+import { discordGuild, ps2MainOutfit, ps2RestClient, ps2Zones } from '../app';
 import { PS2StreamingEvent } from '../ps2-streaming-client/consts';
 import { GainExperienceDto, DeathDto } from '../ps2-streaming-client/types';
 import { PS2StreamingClient } from '../ps2-streaming-client';
@@ -49,10 +49,6 @@ export async function trackMainOutfitOp(runningMessage: Message, characterId?: s
 
   // internal functions
   const start = async function(): Promise<void> {
-    koaRouter.get('/op', async (ctx, next) => {
-      ctx.body = runningOp;
-    });
-
     opVoiceChannels.push(await discordGuild.channels.create('Ops Alpha', { type: 'voice', userLimit: 12, parent: DiscordCategoryIdOps }));
     opVoiceChannels.push(await discordGuild.channels.create('Ops Bravo', { type: 'voice', userLimit: 12, parent: DiscordCategoryIdOps }));
     opVoiceChannels.push(await discordGuild.channels.create('Ops Charlie', { type: 'voice', userLimit: 12, parent: DiscordCategoryIdOps }));
@@ -215,8 +211,6 @@ export async function trackMainOutfitOp(runningMessage: Message, characterId?: s
   };
 
   const close = async (op: Op): Promise<void> => {
-    koaRouter.off('GET', '/op');
-
     if (op.status >= Status.Closed) {
       channel.send('The op has already been closed.');
       return;
