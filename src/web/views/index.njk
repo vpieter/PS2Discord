@@ -1,0 +1,15 @@
+{% extends "layouts/main.njk" %}
+
+{% block pageTitle %}index{% endblock pageTitle %}
+
+{% block body %}
+<h1 class="red">Hello nunjucks!</h1>
+<h2 class="grey">How are you today?</h2>
+<ul>
+  {% for test in tests %}
+    <li>
+      {{ test }}
+    </li>
+  {% endfor %}
+</ul>
+{% endblock body %}

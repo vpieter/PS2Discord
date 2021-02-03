@@ -31,3 +31,5 @@ export const DiscordRoleIdLeader = config.discordGuild.roleIdLeader;
 export const DiscordRoleIdOfficer = config.discordGuild.roleIdOfficer;
 export const DiscordRoleIdSpecialist = config.discordGuild.roleIdSpecialist;
 export const DiscordRoleIdMember = config.discordGuild.roleIdMember;
+
+export const KoaPort = config.koa.port;

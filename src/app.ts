@@ -2,17 +2,17 @@ import { PS2RestClient } from './ps2-rest-client';
 import { ZoneVM, MainOutfitVM, FactionVM, CapturedFacilityVM } from './ps2-rest-client/types';
 import { Client as DiscordClient, ClientUser as DiscordClientUser, Guild } from 'discord.js';
 import { trackMainOutfitMembersOnline, trackMainOutfitBaseCaptures, setDiscordCommandListeners, setPS2DiscordGreetingListener } from './functions';
-import { DiscordBotToken, DiscordGuildId } from './consts';
+import { DiscordBotToken, DiscordGuildId, KoaPort } from './consts';
 import { consoleCatch } from './utils';
 import { Op, Training } from './types';
-import Koa from 'koa';
-import MyKoaRouter from './my-koa-router';
-import koaCompress from 'koa-compress';
+import MyKoa from './my-koa';
 
 // Global
+export let koa: MyKoa;
+
 export let ps2RestClient: PS2RestClient;
-export let ps2Factions: Array<FactionVM>;
-export let ps2Zones: Array<ZoneVM>;
+export let ps2Factions: Array<FactionVM> = [];
+export let ps2Zones: Array<ZoneVM> = [];
 export let ps2MainOutfit: MainOutfitVM;
 export let ps2ControlledBases: Array<CapturedFacilityVM> = [];
 
@@ -22,31 +22,27 @@ export let discordGuild: Guild;
 
 export let runningActivities: Record<string, Op | Training> = {};
 
-export const koa = new Koa();
-export const koaRouter = new MyKoaRouter();
-export const koaDebugRouter = new MyKoaRouter({ prefix: '/debug' });
-
 async function init() {
-  // discord
+  // Koa
+  koa = new MyKoa(KoaPort);
+
+  koa.indexRouter.get('', '/', async (ctx) => { ctx.body = 'Hello world!'; });
+  koa.indexRouter.get('index', '/index', async function (ctx) {
+    ctx.body = await ctx.render('index', { tests: ['test1', 'test2', 'test3'] } );
+  })
+
+  koa.debugExpose('ps2Factions', async () => ps2Factions);
+  koa.debugExpose('ps2Zones', async () => ps2Zones);
+  koa.debugExpose('ps2MainOutfit', async () => ps2MainOutfit);
+  koa.debugExpose('ps2ControlledBases', async () => ps2ControlledBases);
+  koa.debugExpose('runningActivities', async () => runningActivities);
+
+  // Discord
   discordClient.once('ready', discordReady);
   discordClient.on('error', consoleCatch);
   discordClient.on('rateLimit', consoleCatch);
 
-  discordClient.login(DiscordBotToken);
-
-  // koa
-  koaRouter.get('index', '/', async (ctx) => { ctx.body = 'Hello world!'; });
-  koa.use(koaRouter.routes()).use(koaRouter.allowedMethods());
-
-  koaDebugRouter.get('ps2Factions', '/ps2Factions', async (ctx) => { ctx.body = ps2Factions; });
-  koaDebugRouter.get('ps2Zones', '/ps2Zones', async (ctx) => { ctx.body = ps2Zones; });
-  koaDebugRouter.get('ps2MainOutfit', '/ps2MainOutfit', async (ctx) => { ctx.body = ps2MainOutfit; });
-  koaDebugRouter.get('ps2ControlledBases', '/ps2ControlledBases', async (ctx) => { ctx.body = ps2ControlledBases; });
-  koaDebugRouter.get('runningActivities', '/runningActivities', async (ctx) => { ctx.body = runningActivities; });
-  koa.use(koaDebugRouter.routes()).use(koaDebugRouter.allowedMethods());
-
-  koa.use(koaCompress());
-  koa.listen(3000);
+  await discordClient.login(DiscordBotToken);
 };
 
 async function discordReady() {

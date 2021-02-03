@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+<head>
+  {% block head %}
+  <meta charset="utf-8">
+  <title>{% block title %}{% block pageTitle %}{% endblock pageTitle %} - BJayBot{% endblock title %}</title>
+  {% block styles %}
+  <style>
+    body {
+      display: block;
+      background: #282C34;
+      color: #eeeeee;
+
+      font-family: 'helvetica neue', helvetica, arial, sans-serif;
+      line-height: 1.5;
+    }
+    .yellow { color: #f0da5e; }
+    .yellow-light { color: #edf080; }
+    .green { color: #a7e450; }
+    .cyan { color: #76e9c2; }
+    .orange { color: #f3a056; }
+    .red { color: #f35656; }
+    .grey { color: #5e6a75; }
+  </style>
+  {% endblock styles %}
+  {% block scriptsHead %}{% endblock scriptsHead %}
+  {% endblock head %}
+</head>
+<body>
+{% block body %}{% endblock body %}
+{% block scripts %}{% endblock scripts %}
+</body>
+</html>

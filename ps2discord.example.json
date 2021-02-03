@@ -21,5 +21,8 @@
   "ps2": {
     "apiToken": "token-here",
     "outfitId": "outfit-id-here"
+  },
+  "koa": {
+    "port": 80
   }
 }
