@@ -5,6 +5,7 @@ import { BasesCommandHandler } from './bases';
 import { MembersCommandHandler } from './members';
 import { OpCommandHandler } from './op';
 import { TrainingCommandHandler } from './training';
+import { ActivityCommandHandler } from './activity';
 
 export const CommandHandlers = {
   [Commands.Help]: HelpCommandHandler,
@@ -13,4 +14,5 @@ export const CommandHandlers = {
   [Commands.Bases]: BasesCommandHandler,
   [Commands.Op]: OpCommandHandler,
   [Commands.Training]: TrainingCommandHandler,
+  [Commands.Activity]: ActivityCommandHandler,
 };

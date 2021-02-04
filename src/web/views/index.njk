@@ -2,14 +2,25 @@
 
 {% block pageTitle %}index{% endblock pageTitle %}
 
+{% block styles %}
+{{ super() }}
+<style>
+  header {
+    text-align: center;
+  }
+  header h1, header h2 {
+    display: inline-block;
+    font-family: 'comic sans ms';
+  }
+  header h2::before {
+    content: ' ';
+  }
+</style>
+{% endblock styles %}
+
 {% block body %}
-<h1 class="red">Hello nunjucks!</h1>
-<h2 class="grey">How are you today?</h2>
-<ul>
-  {% for test in tests %}
-    <li>
-      {{ test }}
-    </li>
-  {% endfor %}
-</ul>
+<header>
+  <h1 class="yellow">BJayBot</h1>
+  <h2 class="white">beep booping your mom</h2>
+</header>
 {% endblock body %}

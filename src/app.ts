@@ -1,10 +1,10 @@
 import { PS2RestClient } from './ps2-rest-client';
 import { ZoneVM, MainOutfitVM, FactionVM, CapturedFacilityVM } from './ps2-rest-client/types';
 import { Client as DiscordClient, ClientUser as DiscordClientUser, Guild } from 'discord.js';
-import { trackMainOutfitMembersOnline, trackMainOutfitBaseCaptures, setDiscordCommandListeners, setPS2DiscordGreetingListener } from './functions';
+import { trackMainOutfitMembersOnline, trackMainOutfitBaseCaptures, setDiscordCommandListeners, setPS2DiscordGreetingListener, trackDiscordUsers } from './functions';
 import { DiscordBotToken, DiscordGuildId, KoaPort } from './consts';
 import { consoleCatch } from './utils';
-import { Op, Training } from './types';
+import { Op, TrackedDiscordUser, Training } from './types';
 import MyKoa from './my-koa';
 
 // Global
@@ -20,22 +20,23 @@ export let discordClient = new DiscordClient();
 export let discordBotUser: DiscordClientUser;
 export let discordGuild: Guild;
 
-export let runningActivities: Record<string, Op | Training> = {};
+export let runningActivities: {[key: string]: Op | Training} = {};
+export let trackedDiscordUsers: {[key: string]: TrackedDiscordUser} = {};
 
 async function init() {
   // Koa
   koa = new MyKoa(KoaPort);
 
-  koa.indexRouter.get('', '/', async (ctx) => { ctx.body = 'Hello world!'; });
-  koa.indexRouter.get('index', '/index', async function (ctx) {
-    ctx.body = await ctx.render('index', { tests: ['test1', 'test2', 'test3'] } );
-  })
+  // koa.indexRouter.get('index', '/', async function (ctx) {
+  //   ctx.body = await ctx.render('index', { tests: ['test1', 'test2', 'test3'] } );
+  // })
 
   koa.debugExpose('ps2Factions', async () => ps2Factions);
   koa.debugExpose('ps2Zones', async () => ps2Zones);
   koa.debugExpose('ps2MainOutfit', async () => ps2MainOutfit);
   koa.debugExpose('ps2ControlledBases', async () => ps2ControlledBases);
   koa.debugExpose('runningActivities', async () => runningActivities);
+  koa.debugExpose('trackedDiscordUsers', async () => trackedDiscordUsers);
 
   // Discord
   discordClient.once('ready', discordReady);
@@ -66,6 +67,7 @@ async function discordReady() {
 
     await trackMainOutfitBaseCaptures();
     await trackMainOutfitMembersOnline();
+    await trackDiscordUsers();
 
     await setDiscordCommandListeners();
 
