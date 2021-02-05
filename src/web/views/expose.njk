@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>{{ title }} - BJayBot</title>
+  <style>
+    :root {
+      --color-bg: #282C34;
+      --color-color: #eeeeee;
+      --color-button: #5e6a75;
+      --color-link: #a7e450;
+      --color-link-hover: #679430;
+
+      --color-key: #f35656;
+      --color-null: #76e9c2;
+      --color-string: #f0da5e;
+      --color-number: #76e9c2;
+      --color-boolean: #76e9c2;
+    }
+
+    body {
+      display: block;
+      background: #282C34;
+      color: #eeeeee;
+      margin: 0;
+      padding: 0;
+    }
+
+    pre {
+      background-color: var(--color-bg);
+      font-family: Menlo, Consolas, DejaVu Sans Mono, monospace;
+      font-size: 12px;
+      line-height: 16px;
+      margin: 16px 10px;
+      margin-right: 160px;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+      unicode-bidi: embed;
+    }
+    pre .key { color: var(--color-key); }
+    pre .null { color: var(--color-null); }
+    pre .string { color: var(--color-string); }
+    pre .number { color: var(--color-number); }
+    pre .boolean { color: var(--color-boolean); }
+    pre .a, pre .a:active, pre .a:visited { color: var(--color-link); }
+    pre .a:hover { color: var(--color-link-hover); }
+  </style>
+  <script>
+    var json = `{{ json | safe }}`;
+
+    var escapeHTML = function(unsafe) {
+      var regexHTML = /[&<"']/g;
+      return unsafe.replace(regexHTML, function(match) {
+      switch (match) {
+        case '&':
+          return "&amp;";
+        case '<':
+          return "&lt;";
+        case '"':
+          return "&quot;";
+        case "'":
+          return "&apos;";
+        default:
+          return match;
+        }
+      });
+    };
+
+    var highlight = function(jsonString) {
+      var regexTypes = /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g;
+      return jsonString.replace(regexTypes, function (match) {
+        var type = "number";
+        if (/^"/.test(match)) {
+          if (/:$/.test(match)) {
+            type = "key";
+          } else {
+            type = "string";
+            var matchWithoutQuotes = match.slice(1,-1);
+            match = '"' + escapeHTML(matchWithoutQuotes) + '"';
+            var regexURLs = /(https?:\/\/|ftp:\/\/|file:\/\/|www\.)[^\s,;:]+[^\s".,;:]/g;
+            match = match.replace(regexURLs, function(url) {
+              return '<a href="' + url + '" class="a">' + url + '</a>';
+            });
+          }
+        } else if (/true|false/.test(match)) {
+          type = "boolean";
+        } else if (/null/.test(match)) {
+          type = "null";
+        }
+        return '<span class="' + type + '">' + match + '</span>';
+      });
+    }
+  </script>
+</head>
+<body>
+  <pre id="json"></pre>
+  <script>document.getElementById('json').innerHTML = highlight(json);</script>
+</body>
+</html>

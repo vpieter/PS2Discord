@@ -14,5 +14,5 @@ export const CommandHandlers = {
   [Commands.Bases]: BasesCommandHandler,
   [Commands.Op]: OpCommandHandler,
   [Commands.Training]: TrainingCommandHandler,
-  [Commands.Activity]: ActivityCommandHandler,
+  // [Commands.Activity]: ActivityCommandHandler,
 };

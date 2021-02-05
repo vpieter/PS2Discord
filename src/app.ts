@@ -6,6 +6,7 @@ import { DiscordBotToken, DiscordGuildId, KoaPort } from './consts';
 import { consoleCatch } from './utils';
 import { Op, TrackedDiscordUser, Training } from './types';
 import MyKoa from './my-koa';
+import { filter, map, sortBy } from 'lodash';
 
 // Global
 export let koa: MyKoa;
@@ -30,6 +31,19 @@ async function init() {
   // koa.indexRouter.get('index', '/', async function (ctx) {
   //   ctx.body = await ctx.render('index', { tests: ['test1', 'test2', 'test3'] } );
   // })
+
+  koa.expose('activity', async () => {
+    const trackedMembers = filter(trackedDiscordUsers, user => user.member);
+    const activeMembers = filter(trackedMembers, member => member.voiceHistory.length > 0);
+    const sortedMembers = sortBy(activeMembers, member => Math.abs(member.voiceHistory[0].date.diffNow('milliseconds').milliseconds));
+
+    return map(sortedMembers, member => ({
+      username: member.username,
+      displayName: member.displayName,
+      lastChannel: member.voiceHistory[0].channelName,
+      lastSeen: member.voiceHistory[0].date.toFormat('dd MMM yyyy HH:mm'),
+    }));
+  });
 
   koa.debugExpose('ps2Factions', async () => ps2Factions);
   koa.debugExpose('ps2Zones', async () => ps2Zones);

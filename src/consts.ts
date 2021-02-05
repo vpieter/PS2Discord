@@ -10,7 +10,7 @@ export enum Commands {
   'Bases' = 'bases',
   'Op' = 'op',
   'Training' = 'training',
-  'Activity' = 'activity',
+  // 'Activity' = 'activity',
 };
 
 export enum Activities {

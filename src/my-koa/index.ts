@@ -30,6 +30,8 @@ export default class MyKoa extends Koa {
   constructor(listenPort: number) {
     super();
 
+    this.use(koaCompress());
+
     const viewsPath = path.join(__dirname, '..', '..', 'web', 'views');
     const koaRender = koaViews(viewsPath, { map: { njk: 'nunjucks' }, extension: 'njk', autoRender: false, options: { settings: { views: viewsPath } } }) as Koa.Middleware;
     this.use(koaRender);
@@ -40,12 +42,18 @@ export default class MyKoa extends Koa {
     this.debugRouter = new MyKoaRouter({ prefix: '/debug', methods: ['GET'] });
     this.use(this.debugRouter.routes()).use(this.debugRouter.allowedMethods());
 
-    this.use(koaCompress());
-
     this.listen(listenPort);
   }
 
+  expose(name:string, obj: () => Promise<any>) {
+    this.indexRouter.get(name, `/${name}`, async (ctx) => {
+      ctx.body = await ctx.render('expose', { json: JSON.stringify(await obj(), null, 2), title: name } );
+    });
+  }
+
   debugExpose(name:string, obj: () => Promise<any>) {
-    this.debugRouter.get(name, `/${name}`, async (ctx) => { ctx.body = await obj(); });
-  };
+    this.debugRouter.get(name, `/${name}`, async (ctx) => {
+      ctx.body = await ctx.render('expose', { json: JSON.stringify(await obj(), null, 2), title: name } );
+    });
+  }
 }

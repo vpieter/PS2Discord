@@ -14,8 +14,8 @@ export async function ActivityCommandHandler (command: Command): Promise<void> {
   });
 
   const activityString = activity.length
-      ? activity.join('\n')
-      : 'No active members';
+    ? activity.join('\n')
+    : 'No active members';
 
   const activityEmbed = new MessageEmbed()
     .setTitle(`${ps2MainOutfit.alias} member activity`)

@@ -1,4 +1,4 @@
-import { Guild, GuildMember, PartialGuildMember, VoiceState } from 'discord.js';
+import { GuildMember, PartialGuildMember, VoiceState } from 'discord.js';
 import { DateTime } from 'luxon';
 import { discordClient, koa, trackedDiscordUsers } from '../app';
 import { DiscordRoleIdMember } from '../consts';
@@ -51,6 +51,7 @@ export async function trackDiscordUsers(): Promise<void> {
   const start = async function(): Promise<void> {
     discordClient.on('voiceStateUpdate', voiceStatusUpdateListener);
     discordClient.on('guildMemberUpdate', guildMemberUpdateListener);
+
     koa.debugExpose('trackDiscordUsers-start', async () => startTime);
   };
 
