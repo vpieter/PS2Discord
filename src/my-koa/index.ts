@@ -24,11 +24,15 @@ export class MyKoaRouter extends KoaRouter<Koa.DefaultState, Koa.Context> {
 }
 
 export default class MyKoa extends Koa {
+  listenPort:number;
+
   indexRouter: MyKoaRouter;
   debugRouter: MyKoaRouter;
 
   constructor(listenPort: number) {
     super();
+    
+    this.listenPort = listenPort;
 
     this.use(koaCompress());
 
@@ -41,8 +45,10 @@ export default class MyKoa extends Koa {
 
     this.debugRouter = new MyKoaRouter({ prefix: '/debug', methods: ['GET'] });
     this.use(this.debugRouter.routes()).use(this.debugRouter.allowedMethods());
+  }
 
-    this.listen(listenPort);
+  init() {
+    this.listen(this.listenPort);
   }
 
   expose(name:string, obj: () => Promise<any>) {

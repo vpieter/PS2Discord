@@ -5,11 +5,13 @@ import { trackMainOutfitMembersOnline, trackMainOutfitBaseCaptures, setDiscordCo
 import { DiscordBotToken, DiscordGuildId, KoaPort } from './consts';
 import { consoleCatch } from './utils';
 import { Op, TrackedDiscordUser, Training } from './types';
+import { each, filter, map, sortBy } from 'lodash';
+import jsonfile from 'jsonfile';
 import MyKoa from './my-koa';
-import { filter, map, sortBy } from 'lodash';
+import { DateTime } from 'luxon';
 
 // Global
-export let koa: MyKoa;
+export let koa = new MyKoa(KoaPort);
 
 export let ps2RestClient: PS2RestClient;
 export let ps2Factions: Array<FactionVM> = [];
@@ -25,12 +27,24 @@ export let runningActivities: {[key: string]: Op | Training} = {};
 export let trackedDiscordUsers: {[key: string]: TrackedDiscordUser} = {};
 
 async function init() {
-  // Koa
-  koa = new MyKoa(KoaPort);
+  // store
+  const store_ps2ControlledBases = await jsonfile.readFile('./store/ps2ControlledBases.json', { throws: false }).catch(()=>{});
+  if (store_ps2ControlledBases) Object.assign(ps2ControlledBases, store_ps2ControlledBases);
 
-  // koa.indexRouter.get('index', '/', async function (ctx) {
-  //   ctx.body = await ctx.render('index', { tests: ['test1', 'test2', 'test3'] } );
-  // })
+  const store_trackedDiscordUsers = await jsonfile.readFile('./store/trackedDiscordUsers.json', { throws: false }).catch(()=>{});
+  if (store_trackedDiscordUsers) {
+    each(store_trackedDiscordUsers, (trackedDiscordUser: TrackedDiscordUser) => {
+      each(trackedDiscordUser.voiceHistory, voiceHistory => {
+        voiceHistory.date = DateTime.fromISO(voiceHistory.date as any as string);
+      });
+    });
+    Object.assign(trackedDiscordUsers, store_trackedDiscordUsers);
+  }
+
+  // koa
+  koa.indexRouter.get('index', '/', async function (ctx) {
+    ctx.body = await ctx.render('index', { tests: ['test1', 'test2', 'test3'] } );
+  });
 
   koa.expose('activity', async () => {
     const trackedMembers = filter(trackedDiscordUsers, user => user.member);
@@ -41,7 +55,7 @@ async function init() {
       username: member.username,
       displayName: member.displayName,
       lastChannel: member.voiceHistory[0].channelName,
-      lastSeen: member.voiceHistory[0].date.toFormat('dd MMM yyyy HH:mm'),
+      lastSeen: member.voiceHistory[0].date.toFormat('dd MMM yyyy HH:mm ZZZZ'),
     }));
   });
 
@@ -51,6 +65,8 @@ async function init() {
   koa.debugExpose('ps2ControlledBases', async () => ps2ControlledBases);
   koa.debugExpose('runningActivities', async () => runningActivities);
   koa.debugExpose('trackedDiscordUsers', async () => trackedDiscordUsers);
+
+  koa.init();
 
   // Discord
   discordClient.once('ready', discordReady);

@@ -4,3 +4,6 @@ dist
 ps2discord.json
 ps2discord.*.json
 !ps2discord.example.json
+
+store/*
+!store/STORE_FILES_HERE
