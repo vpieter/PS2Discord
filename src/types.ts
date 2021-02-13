@@ -31,6 +31,7 @@ export type Op = {
 
 export type Training = {
   voiceChannels: Array<VoiceChannel>,
+  participantIds: Array<string>,
   stop: (training: Training)=>void,
 };
 

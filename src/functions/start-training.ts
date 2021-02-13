@@ -8,7 +8,7 @@ import { wait } from '../utils';
 export async function startTraining(runningMessage: Message): Promise<Training> {
   const startTime = DateTime.local();
   const trainingVoiceChannels: Array<VoiceChannel> = [];
-  const participantIds: Array<string> = [];
+  const opParticipantIds: Array<string> = [];
 
   const channel = runningMessage.channel;
 
@@ -16,9 +16,9 @@ export async function startTraining(runningMessage: Message): Promise<Training> 
   const voiceStatusUpdateListener = (oldState: VoiceState, newState: VoiceState) => {
     if (newState.channelID === null || newState.member === null) return;
     if (!trainingVoiceChannels.some(channel => channel.id === newState.channelID)) return;
-    if (participantIds.some(participantId => participantId === newState.member?.id)) return;
+    if (opParticipantIds.some(participantId => participantId === newState.member?.id)) return;
     
-    participantIds.push(newState.member.id);
+    opParticipantIds.push(newState.member.id);
   };
 
   const start = async function(): Promise<void> {
@@ -36,13 +36,13 @@ export async function startTraining(runningMessage: Message): Promise<Training> 
     discordClient.off('voiceStateUpdate', voiceStatusUpdateListener);
 
     const endTime = DateTime.local();
-    const participantNames = participantIds.length
-        ? participantIds.map(participantId => `<@${participantId}>`).join(', ')
+    const participantNames = opParticipantIds.length
+        ? opParticipantIds.map(participantId => `<@${participantId}>`).join(', ')
         : 'No one joined the training voice channels.';
     const duration = Interval.fromDateTimes(startTime, endTime).toDuration();
     const overviewEmbed = new MessageEmbed()
       .setTitle(`[${ps2MainOutfit.alias}] ${ps2MainOutfit.name} training report.`)
-      .addField(`${participantIds.length} Participants:`, participantNames, false)
+      .addField(`${opParticipantIds.length} Participants:`, participantNames, false)
       .addField('Duration', `${duration.toFormat('hh:mm:ss')}`, true);
     await channel.send(overviewEmbed);
 
@@ -60,6 +60,7 @@ export async function startTraining(runningMessage: Message): Promise<Training> 
   // startTraining
   const runningTraining: Training = {
     voiceChannels: trainingVoiceChannels,
+    participantIds: opParticipantIds,
     stop: stop,
   };
 
