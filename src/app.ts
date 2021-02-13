@@ -3,12 +3,11 @@ import { ZoneVM, MainOutfitVM, FactionVM, CapturedFacilityVM } from './ps2-rest-
 import { Client as DiscordClient, ClientUser as DiscordClientUser, Guild } from 'discord.js';
 import { trackMainOutfitMembersOnline, trackMainOutfitBaseCaptures, setDiscordCommandListeners, setPS2DiscordGreetingListener, trackDiscordUsers } from './functions';
 import { DiscordBotToken, DiscordGuildId, KoaPort } from './consts';
-import { consoleCatch } from './utils';
+import { consoleCatch, loadStore } from './utils';
 import { Op, TrackedDiscordUser, Training } from './types';
-import { each, filter, map, sortBy } from 'lodash';
-import jsonfile from 'jsonfile';
-import MyKoa from './my-koa';
+import { filter, map, mapValues, sortBy } from 'lodash';
 import { DateTime } from 'luxon';
+import MyKoa from './my-koa';
 
 // Global
 export let koa = new MyKoa(KoaPort);
@@ -28,18 +27,16 @@ export let trackedDiscordUsers: {[key: string]: TrackedDiscordUser} = {};
 
 async function init() {
   // store
-  const store_ps2ControlledBases = await jsonfile.readFile('./store/ps2ControlledBases.json', { throws: false }).catch(()=>{});
-  if (store_ps2ControlledBases) Object.assign(ps2ControlledBases, store_ps2ControlledBases);
-
-  const store_trackedDiscordUsers = await jsonfile.readFile('./store/trackedDiscordUsers.json', { throws: false }).catch(()=>{});
-  if (store_trackedDiscordUsers) {
-    each(store_trackedDiscordUsers, (trackedDiscordUser: TrackedDiscordUser) => {
-      each(trackedDiscordUser.voiceHistory, voiceHistory => {
-        voiceHistory.date = DateTime.fromISO(voiceHistory.date as any as string);
-      });
-    });
-    Object.assign(trackedDiscordUsers, store_trackedDiscordUsers);
-  }
+  await loadStore(ps2ControlledBases, 'ps2ControlledBases');
+  await loadStore(trackedDiscordUsers, 'trackedDiscordUsers', temp => {
+    return mapValues(temp, trackedDiscordUser => ({
+      ...trackedDiscordUser,
+      voiceHistory: map(trackedDiscordUser.voiceHistory, voiceHistory => ({
+        ...voiceHistory,
+        date: DateTime.fromISO(voiceHistory.date as any as string),
+      })),
+    }));
+  });
 
   // koa
   koa.indexRouter.get('index', '/', async function (ctx) {
@@ -110,9 +107,7 @@ async function discordReady() {
   });
 
   // Not a good idea but I'm trying it anyway.
-  process.on('uncaughtException', function (err) {
-    console.log(err);
-  });
+  process.on('uncaughtException', consoleCatch);
 };
 
 // Init
