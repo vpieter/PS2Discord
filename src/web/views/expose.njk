@@ -1,98 +1,98 @@
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>{{ title }} - BJayBot</title>
-  <style>
-    :root {
-      --color-bg: #282C34;
-      --color-color: #eeeeee;
-      --color-button: #5e6a75;
-      --color-link: #a7e450;
-      --color-link-hover: #679430;
+{% extends "layouts/main.njk" %}
 
-      --color-key: #f35656;
-      --color-null: #76e9c2;
-      --color-string: #f0da5e;
-      --color-number: #76e9c2;
-      --color-boolean: #76e9c2;
-    }
+{% block styles %}
+{{ super() }}
+<style>
+  body {
+    display: block;
+    background: rgb(var(--rgb-blue-dark));
+    color: rgb(var(--rgb-white));
+    margin: 0;
+    padding: 0;
+  }
 
-    body {
-      display: block;
-      background: #282C34;
-      color: #eeeeee;
-      margin: 0;
-      padding: 0;
-    }
+  pre {
+    --color-link: rgb(var(--rgb-green));
+    --color-link-hover: rgb(var(--rgb-green-dark));
+    --color-key: rgb(var(--rgb-red));
+    --color-null: rgb(var(--rgb-cyan));
+    --color-string: rgb(var(--rgb-yellow));
+    --color-number: rgb(var(--rgb-cyan));
+    --color-boolean: rgb(var(--rgb-cyan));
 
-    pre {
-      background-color: var(--color-bg);
-      font-family: Menlo, Consolas, DejaVu Sans Mono, monospace;
-      font-size: 12px;
-      line-height: 16px;
-      margin: 16px 10px;
-      word-wrap: break-word;
-      white-space: pre-wrap;
-      unicode-bidi: embed;
-    }
-    pre .key { color: var(--color-key); }
-    pre .null { color: var(--color-null); }
-    pre .string { color: var(--color-string); }
-    pre .number { color: var(--color-number); }
-    pre .boolean { color: var(--color-boolean); }
-    pre .a, pre .a:active, pre .a:visited { color: var(--color-link); }
-    pre .a:hover { color: var(--color-link-hover); }
-  </style>
-  <script>
-    var json = `{{ json | safe }}`;
+    font-family: Menlo, Consolas, DejaVu Sans Mono, monospace;
+    font-size: 12px;
+    line-height: 16px;
+    margin: 16px 0;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    unicode-bidi: embed;
+  }
+  pre .key { color: var(--color-key); }
+  pre .null { color: var(--color-null); }
+  pre .string { color: var(--color-string); }
+  pre .number { color: var(--color-number); }
+  pre .boolean { color: var(--color-boolean); }
+  pre .a, pre .a:active, pre .a:visited { color: var(--color-link); }
+  pre .a:hover { color: var(--color-link-hover); }
+  pre .json-select { -moz-user-select: all; -webkit-user-select: all; user-select: all; }
+</style>
+{% endblock styles %}
 
-    var escapeHTML = function(unsafe) {
-      var regexHTML = /[&<"']/g;
-      return unsafe.replace(regexHTML, function(match) {
+{% block scriptsHead %}
+{{ super() }}
+<script>
+  const json = `{{ json | safe }}`;
+
+  const escapeHTML = (unsafe) => {
+    const regexHTML = /[&<"']/g;
+    return unsafe.replace(regexHTML, (match) => {
       switch (match) {
-        case '&':
-          return "&amp;";
-        case '<':
-          return "&lt;";
-        case '"':
-          return "&quot;";
-        case "'":
-          return "&apos;";
-        default:
-          return match;
-        }
-      });
-    };
+        case '&': { return '&amp;'; }
+        case '<': { return '&lt;'; }
+        case '"': { return '&quot;'; }
+        case `'`: { return '&apos;'; }
+        default: { return match; }
+      }
+    });
+  };
 
-    var highlight = function(jsonString) {
-      var regexTypes = /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g;
-      return jsonString.replace(regexTypes, function (match) {
-        var type = "number";
-        if (/^"/.test(match)) {
-          if (/:$/.test(match)) {
-            type = "key";
-          } else {
-            type = "string";
-            var matchWithoutQuotes = match.slice(1,-1);
-            match = '"' + escapeHTML(matchWithoutQuotes) + '"';
-            var regexURLs = /(https?:\/\/|ftp:\/\/|file:\/\/|www\.)[^\s,;:]+[^\s".,;:]/g;
-            match = match.replace(regexURLs, function(url) {
-              return '<a href="' + url + '" class="a">' + url + '</a>';
-            });
-          }
-        } else if (/true|false/.test(match)) {
-          type = "boolean";
-        } else if (/null/.test(match)) {
-          type = "null";
+  const highlight = (jsonString) => {
+    const regexTypes = /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g;
+
+    return jsonString.replace(regexTypes, (match) => {
+      let type = 'number';
+      if (/^"/.test(match)) {
+        if (/:$/.test(match)) {
+          type = 'key';
+          const matchWithoutQuotes = match.slice(1, -2);
+          match = `"<span class="json-select">${ matchWithoutQuotes }</span>":`;
+        } else {
+          type = 'string';
+          const matchWithoutQuotes = match.slice(1, -1);
+          match = `"<span class="json-select">${ escapeHTML(matchWithoutQuotes) }</span>"`;
+          const regexURLs = /(https?:\/\/|ftp:\/\/|file:\/\/|www\.)[^\s,;:]+[^\s".,;:]/g;
+          match = match.replace(regexURLs, (url) => `<a href="${ url }" class="a">${ url }</a>`);
         }
-        return '<span class="' + type + '">' + match + '</span>';
-      });
-    }
-  </script>
-</head>
-<body>
+      } else if (/true|false/.test(match)) {
+        type = 'boolean';
+        match = `<span class="json-select">${ match }</span>`;
+      } else if (/null/.test(match)) {
+        type = 'null';
+        match = `<span class="json-select">${ match }</span>`;
+      }
+      return `<span class="${ type }">${ match }</span>`;
+    });
+  }
+</script>
+{% endblock scriptsHead %}
+
+{% block body %}
+{{ super() }}
   <pre id="json"></pre>
-  <script>document.getElementById('json').innerHTML = highlight(json);</script>
-</body>
-</html>
+{% endblock body %}
+
+{% block scripts %}
+{{ super() }}
+<script>document.getElementById('json').innerHTML = highlight(json);</script>
+{% endblock scripts %}

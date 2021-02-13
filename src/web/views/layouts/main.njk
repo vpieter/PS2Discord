@@ -3,32 +3,104 @@
 <head>
   {% block head %}
   <meta charset="utf-8">
-  <title>{% block title %}{% block pageTitle %}{% endblock pageTitle %} - BJayBot{% endblock title %}</title>
+  <title>{% block title %}{% block pageTitle %}{{ title | capitalize }}{% endblock pageTitle %} - BJayBot{% endblock title %}</title>
   {% block styles %}
   <style>
-    body {
-      display: block;
-      background: #282C34;
-      color: #eeeeee;
+    :root {
+      --rgb-blue-dark: 40, 44, 52;
+      --rgb-white: 238, 238, 238;
+      --rgb-yellow: 240, 218, 94;
+      --rgb-yellow-light: 236, 240, 128;
+      --rgb-green: 166, 228, 80;
+      --rgb-green-dark: 103, 148, 48;
+      --rgb-cyan: 118, 233, 195;
+      --rgb-orange: 243, 159, 86;
+      --rgb-red: 243, 86, 86;
+      --rgb-grey: 94, 106, 117;
+    }
 
+    :root {
+      background: rgb(var(--rgb-blue-dark));
+      color: rgb(var(--rgb-white));
+      display: block;
       font-family: 'helvetica neue', helvetica, arial, sans-serif;
       line-height: 1.5;
+      margin: 0 auto;
+      max-width: 960px;
+      padding: 0 8px;
     }
-    .white { color: #eeeeee; }
-    .yellow { color: #f0da5e; }
-    .yellow-light { color: #edf080; }
-    .green { color: #a7e450; }
-    .cyan { color: #76e9c2; }
-    .orange { color: #f3a056; }
-    .red { color: #f35656; }
-    .grey { color: #5e6a75; }
+
+    ::selection {
+      background-color: rgba(var(--rgb-yellow-light), .2);
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      flex-wrap: wrap;
+      cursor: default;
+      margin: 20px 0;
+
+      -moz-user-select: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    header h1 {
+      color: rgb(var(--rgb-yellow));
+    }
+    header h1, header h2 {
+      display: inline-block;
+      font-family: 'comic sans ms';
+      margin: 0;
+    }
+    header h2::before {
+      content: ' ';
+    }
+
+    nav {
+      display: flex;
+      justify-content: center;
+      -moz-user-select: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    nav a {
+      color: rgb(var(--rgb-yellow));
+      padding: 0 8px;
+      text-decoration: none;
+      transition: color .1s ease-out;
+    }
+    nav a:hover {
+      color: rgb(var(--rgb-orange));
+      text-decoration: underline;
+    }
+    nav a.active {
+      color: rgb(var(--rgb-grey));
+    }
   </style>
   {% endblock styles %}
   {% block scriptsHead %}{% endblock scriptsHead %}
   {% endblock head %}
 </head>
 <body>
-{% block body %}{% endblock body %}
+{% block body %}
+<header>
+  <h1>BJayBot</h1>
+  <h2>beep booping your mom</h2>
+</header>
+<nav>
+  {% set nav_items = { 'index': '/', 'activity': '/activity/' } %}
+  {% for nav_item, url in nav_items %}
+    <a href="{{ url }}" class="{% if nav_item == title %}active{% endif %}">{{ nav_item | capitalize }}</a>
+  {% endfor %}
+</nav>
+{% endblock body %}
 {% block scripts %}{% endblock scripts %}
 </body>
 </html>
