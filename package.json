@@ -5,17 +5,18 @@
   "scripts": {
     "start": "npm run _boot",
 
-    "start:dev": "npm run dist:dev && cd dist/ && npm run _boot",
+    "start:dev": "npm run dist:dev && concurrently --kill-others \"npm run _watch\" \"npm run _boot --prefix dist/\"",
     "start:prod": "npm run dist:prod && cd dist/ && npm run _boot",
 
     "dist:dev": "npm run _prepare && npm run _config:dev && npm run _build && npm run _prepublish",
     "dist:prod": "npm run _prepare && npm run _config:prod && npm run _build && npm run _prepublish",
-    
+
     "_prepare": "rm -rf dist/ && mkdir dist",
     "_config:dev": "cp ps2discord.development.json dist/ps2discord.json",
     "_config:prod": "cp ps2discord.production.json dist/ps2discord.json",
     "_build": "tsc",
     "_prepublish": "cp package.json dist/ && cp package-lock.json dist/ && cp -R src/web/ dist/web/ && cp -R store/ dist/store/",
+    "_watch": "cpx \"src/web/**/*\" dist/web --watch --no-initial",
     "_boot": "node bin/app.js"
   },
   "author": "pieterv",
@@ -48,7 +49,9 @@
     "@types/luxon": "^1.25.1",
     "@types/node": "^12.20.0",
     "@types/ws": "^7.4.0",
-    "@types/xregexp": "^4.3.0"
+    "@types/xregexp": "^4.3.0",
+    "concurrently": "^5.3.0",
+    "cpx": "^1.5.0"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.2",
