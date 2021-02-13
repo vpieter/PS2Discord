@@ -6,6 +6,56 @@
   <title>{% block title %}{% block pageTitle %}{{ title | capitalize }}{% endblock pageTitle %} - BJayBot{% endblock title %}</title>
   {% block styles %}
   <style>
+    /* http://meyerweb.com/eric/tools/css/reset/ 
+      v2.0 | 20110126
+      License: none (public domain)
+    */
+
+    html, body, div, span, applet, object, iframe,
+    h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+    a, abbr, acronym, address, big, cite, code,
+    del, dfn, em, img, ins, kbd, q, s, samp,
+    small, strike, strong, sub, sup, tt, var,
+    b, u, i, center,
+    dl, dt, dd, ol, ul, li,
+    fieldset, form, label, legend,
+    table, caption, tbody, tfoot, thead, tr, th, td,
+    article, aside, canvas, details, embed, 
+    figure, figcaption, footer, header, hgroup, 
+    menu, nav, output, ruby, section, summary,
+    time, mark, audio, video {
+      margin: 0;
+      padding: 0;
+      border: 0;
+      font-size: 100%;
+      font: inherit;
+      vertical-align: baseline;
+    }
+    /* HTML5 display-role reset for older browsers */
+    article, aside, details, figcaption, figure, 
+    footer, header, hgroup, menu, nav, section {
+      display: block;
+    }
+    body {
+      line-height: 1;
+    }
+    ol, ul {
+      list-style: none;
+    }
+    blockquote, q {
+      quotes: none;
+    }
+    blockquote:before, blockquote:after,
+    q:before, q:after {
+      content: '';
+      content: none;
+    }
+    table {
+      border-collapse: collapse;
+      border-spacing: 0;
+    }
+  </style>
+  <style>
     :root {
       --rgb-blue-dark: 40, 44, 52;
       --rgb-white: 238, 238, 238;
@@ -27,16 +77,15 @@
       line-height: 1.5;
       margin: 0 auto;
       max-width: 960px;
-      padding: 0 8px;
+      padding: 0 8px 16px;
     }
 
     ::selection {
       background-color: rgba(var(--rgb-yellow-light), .2);
     }
 
-    body {
-      margin: 0;
-      padding: 0;
+    * {
+      box-sizing: border-box;
     }
 
     header {
@@ -45,7 +94,7 @@
       justify-content: center;
       flex-wrap: wrap;
       cursor: default;
-      margin: 20px 0;
+      margin: 32px 0 24px;
 
       -moz-user-select: none;
       -webkit-user-select: none;
@@ -53,11 +102,16 @@
     }
     header h1 {
       color: rgb(var(--rgb-yellow));
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+    header h2 {
+      font-size: 24px;
     }
     header h1, header h2 {
       display: inline-block;
       font-family: 'comic sans ms';
-      margin: 0;
+      font-weight: bold;
     }
     header h2::before {
       content: ' ';
@@ -66,6 +120,8 @@
     nav {
       display: flex;
       justify-content: center;
+      margin-bottom: 24px;
+
       -moz-user-select: none;
       -webkit-user-select: none;
       user-select: none;
@@ -76,12 +132,13 @@
       text-decoration: none;
       transition: color .1s ease-out;
     }
-    nav a:hover {
+    nav a:not(.active):hover {
       color: rgb(var(--rgb-orange));
       text-decoration: underline;
     }
     nav a.active {
-      color: rgb(var(--rgb-grey));
+      color: rgb(var(--rgb-orange));
+      cursor: default;
     }
   </style>
   {% endblock styles %}
@@ -97,7 +154,7 @@
 <nav>
   {% set nav_items = { 'index': '/', 'activity': '/activity/' } %}
   {% for nav_item, url in nav_items %}
-    <a href="{{ url }}" class="{% if nav_item == title %}active{% endif %}">{{ nav_item | capitalize }}</a>
+    <a {% if nav_item != title %}href="{{ url }}"{% endif %} class="{% if nav_item == title %}active{% endif %}">{{ nav_item | capitalize }}</a>
   {% endfor %}
 </nav>
 {% endblock body %}

@@ -40,7 +40,7 @@ async function init() {
 
   // koa
   koa.indexRouter.get('index', '/', async function (ctx) {
-    ctx.body = await ctx.render('index', { title: 'index' } );
+    ctx.body = await ctx.render('index', { title: 'index', runningActivities } );
   });
 
   koa.expose('activity', async () => {

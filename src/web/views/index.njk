@@ -1,1 +1,66 @@
 {% extends "layouts/main.njk" %}
+
+{% set opRunning = runningActivities['op'] != null %}
+{% set trainingRunning = runningActivities['training'] != null %}
+
+{% block styles %}
+{{ super() }}
+<style>
+  .runningActivities {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 10px;
+  }
+  @media only screen and (min-width : 481px) {
+    .runningActivities {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .runningActivities div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 8px;
+
+    background: rgba(var(--rgb-grey), .1);
+    border-radius: 8px;
+    color: rgb(var(--rgb-grey));
+  }
+  .runningActivities div.running {
+    background: rgba(var(--rgb-green-dark), .2);
+    color: rgb(var(--rgb-green));
+  }
+
+  .runningActivities div h1 {
+    text-transform: uppercase;
+    font-weight: bold;
+  }
+</style>
+{% endblock styles %}
+
+{% block body %}
+{{ super() }}
+<section class="runningActivities">
+  <div class="{% if opRunning %}running{% endif %}">
+    <h1>
+      {% if opRunning %}
+        op in progress!
+      {% else %}
+        No op in progress
+      {% endif %}
+    </h1>
+  </div>
+  <div class="{% if trainingRunning %}running{% endif %}">
+    <h1>
+      {% if trainingRunning %}
+        training in progress!
+      {% else %}
+        No training in progress
+      {% endif %}
+    </h1>
+  </div>
+</section>
+{% endblock body %}
