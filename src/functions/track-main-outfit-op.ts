@@ -1,9 +1,9 @@
-import { discordGuild, ps2MainOutfit, ps2RestClient, ps2Zones } from '../app';
+import { discordBotUser, discordGuild, ps2MainOutfit, ps2RestClient, ps2Zones } from '../app';
 import { PS2StreamingEvent } from '../ps2-streaming-client/consts';
 import { GainExperienceDto, DeathDto } from '../ps2-streaming-client/types';
 import { PS2StreamingClient } from '../ps2-streaming-client';
 import { uniq, groupBy, sortBy, countBy, forEach, max, values } from 'lodash';
-import { MessageEmbed, Message, VoiceChannel, User } from 'discord.js';
+import { MessageEmbed, Message, VoiceChannel, User, TextChannel, DMChannel, NewsChannel } from 'discord.js';
 import { OutfitMemberVM, ZoneVM } from '../ps2-rest-client/types';
 import { DateTime, Interval } from 'luxon';
 import { Op, Status } from '../types';
@@ -30,15 +30,15 @@ type LeaderboardEntry = {
   member: OutfitMemberVM,
 };
 
-export async function trackMainOutfitOp(runningMessage: Message, characterId?: string): Promise<Op> {
+export async function trackMainOutfitOp(channel: TextChannel | DMChannel | NewsChannel): Promise<Op> {
   const queue = new PQueue({concurrency: 1});
   const ps2StreamingClientCharacters = await PS2StreamingClient.getInstance();
 
-  const startTime = DateTime.local();
   const opEvents: Array<GainExperienceDto | DeathDto> = [];
   const opVoiceChannels: Array<VoiceChannel> = [];
-
-  const channel = runningMessage.channel;
+  
+  let startTime: DateTime;
+  let message: Message;
 
   // reports variables
   let overviewMessage: Message;
@@ -48,12 +48,46 @@ export async function trackMainOutfitOp(runningMessage: Message, characterId?: s
   let transportLeaderboard: Leaderboard;
 
   // internal functions
-  const start = async function(): Promise<void> {
-    opVoiceChannels.push(await discordGuild.channels.create('Ops Alpha', { type: 'voice', userLimit: 12, parent: DiscordCategoryIdOps }));
-    opVoiceChannels.push(await discordGuild.channels.create('Ops Bravo', { type: 'voice', userLimit: 12, parent: DiscordCategoryIdOps }));
-    opVoiceChannels.push(await discordGuild.channels.create('Ops Charlie', { type: 'voice', userLimit: 12, parent: DiscordCategoryIdOps }));
-    opVoiceChannels.push(await discordGuild.channels.create('Ops Delta', { type: 'voice', userLimit: 12, parent: DiscordCategoryIdOps }));
+  const open = async function(op: Op): Promise<void> {
+    if (op.status >= Status.Opened) {
+      await channel.send('The op has already been opened.');
+      return;
+    }
 
+    // message
+    message = await channel.send(
+      `Opened an op. Send "op start" command to start tracking in-game events.`
+    + `\nSend a private message to <@!${discordBotUser.id}> saying "op _planetside2username_" to receive an individual op report when we stop the op.`
+    );
+
+    // open voice channels
+    op.voiceChannels.push(await discordGuild.channels.create('Ops Alpha', { type: 'voice', userLimit: 12, parent: DiscordCategoryIdOps }));
+    op.voiceChannels.push(await discordGuild.channels.create('Ops Bravo', { type: 'voice', userLimit: 12, parent: DiscordCategoryIdOps }));
+    op.voiceChannels.push(await discordGuild.channels.create('Ops Charlie', { type: 'voice', userLimit: 12, parent: DiscordCategoryIdOps }));
+    op.voiceChannels.push(await discordGuild.channels.create('Ops Delta', { type: 'voice', userLimit: 12, parent: DiscordCategoryIdOps }));
+
+    // open
+    op.status = Status.Opened;
+  };
+
+  const start = async function(op: Op): Promise<void> {
+    if (op.status >= Status.Started) {
+      await channel.send('The op has already been started.');
+      return;
+    }
+
+    // record startTime
+    startTime = DateTime.local();
+
+    // message
+    const messageText = `Started tracking an op. Send "op stop" command to stop tracking in-game events.`
+    + `\nSend "op close" command to stop the op, close voice channels and close applications for indiviual op reports.`
+    + `\nSend a private message to <@!${discordBotUser.id}> saying "op _planetside2username_" to receive an individual op report when we stop the op.`;
+    
+    if (message) await message.edit(messageText);
+    else await channel.send(messageText);
+
+    // subscribe deaths
     ps2StreamingClientCharacters.subscribe(
       PS2StreamingEvent.Death,
       async data => {
@@ -63,14 +97,21 @@ export async function trackMainOutfitOp(runningMessage: Message, characterId?: s
           const character = ps2MainOutfit.members.find(member => member.id === deathDTO.attacker_character_id);
           if (!character) return; // character not found in outfit.
 
-          if (opEvents.filter(event => event.timestamp === deathDTO.timestamp).includes(deathDTO)) return;
+          const isDuplicate = op.events.filter(event => event.timestamp === deathDTO.timestamp).includes(deathDTO);
+          if (isDuplicate) return; // filter duplicates, because ps2 census API does weird things sometimes.
 
           const killedFaction = await ps2RestClient.getPlayerFaction({characterId: deathDTO.character_id});
           if (killedFaction.id === ps2MainOutfit.faction.id) return; // teamkills don't count.
-          opEvents.push(deathDTO);
-        })
+
+          op.events.push(deathDTO);
+        });
+      },
+      {
+        characters: ps2MainOutfit.members.map(member => member.id),
       }
     )
+
+    // subscribe experience
     ps2StreamingClientCharacters.subscribe(
       PS2StreamingEvent.GainExperience,
       async data => {
@@ -80,25 +121,14 @@ export async function trackMainOutfitOp(runningMessage: Message, characterId?: s
           const character = ps2MainOutfit.members.find(member => member.id === xpDTO.character_id);
           if (!character) return; // character not found in outfit.
 
-          if (opEvents.filter(event => event.timestamp === xpDTO.timestamp).includes(xpDTO)) return;
-          opEvents.push(xpDTO);
+          const isDuplicate = op.events.filter(event => event.timestamp === xpDTO.timestamp).includes(xpDTO);
+          if (isDuplicate) return; // filter duplicates, because ps2 census API does weird things sometimes.
 
-          if (channel.type === 'dm') {
-            const zone = ps2Zones.find(zone => zone.id === xpDTO.zone_id);
-            if (!zone) throw('op xp zone id not found');
-  
-            const embed = new MessageEmbed()
-              .setTitle(`${character.name} vs ${xpDTO.other_id}`)
-              .addField('Continent', `${zone.name}`, true)
-              .addField('XP type', `${experienceNamesHardcoded[xpDTO.experience_id]}`, true)
-              .addField('Timestamp', `${xpDTO.timestamp}`, true);
-  
-            await channel.send(embed);
-          }
+          op.events.push(xpDTO);
         });
       },
       {
-        characters: characterId ? [characterId] : ps2MainOutfit.members.map(member => member.id),
+        characters: ps2MainOutfit.members.map(member => member.id),
         experienceIds: [
           '4', /* Heal */
           '51', /* Squad heal */
@@ -110,6 +140,9 @@ export async function trackMainOutfitOp(runningMessage: Message, characterId?: s
         ],
       }
     );
+
+    // start
+    op.status = Status.Started;
   };
 
   const stop = async function(op: Op): Promise<void> {
@@ -118,6 +151,7 @@ export async function trackMainOutfitOp(runningMessage: Message, characterId?: s
       return;
     }
 
+    // unsubscribe
     ps2StreamingClientCharacters.unsubscribe(
       PS2StreamingEvent.GainExperience
     );
@@ -125,6 +159,7 @@ export async function trackMainOutfitOp(runningMessage: Message, characterId?: s
       PS2StreamingEvent.Death
     );
 
+    // reports
     queue.onEmpty().then(async () => {
       queue.pause();
 
@@ -207,6 +242,7 @@ export async function trackMainOutfitOp(runningMessage: Message, characterId?: s
       op.soloReports.forEach(async soloReport => { await sendSoloOpReport(soloReport); });
     });
 
+    // stop
     op.status = Status.Stopped;
   };
 
@@ -216,6 +252,7 @@ export async function trackMainOutfitOp(runningMessage: Message, characterId?: s
       return;
     }
 
+    // delete voice channels
     op.voiceChannels.forEach(async voiceChannel => {
       voiceChannel.members.forEach(async member => {
         await member.voice.setChannel(DiscordChannelIdOpsLobby).catch(consoleCatch);
@@ -226,8 +263,10 @@ export async function trackMainOutfitOp(runningMessage: Message, characterId?: s
       });
     });
 
-    await runningMessage.delete();
+    // remove ops solo report info message from ops channel
+    await message.delete();
 
+    // close
     op.status = Status.Closed;
   };
 
@@ -314,16 +353,17 @@ export async function trackMainOutfitOp(runningMessage: Message, characterId?: s
 
   // trackMainOutfitOp
   const runningOp: Op = {
-    status: Status.Running,
+    status: Status.Planned,
     events: opEvents,
     baseCaptures: [],
     voiceChannels: opVoiceChannels,
     soloReports: [],
+    open: open,
+    start: start,
     stop: stop,
     close: close,
     sendSoloReport: sendSoloOpReport,
   };
 
-  await start();
   return runningOp;
 };

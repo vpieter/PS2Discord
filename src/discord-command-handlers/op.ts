@@ -5,14 +5,20 @@ import { Activities, DiscordChannelIdOps, DiscordRoleIdLeader, DiscordRoleIdMemb
 import { TextChannel } from 'discord.js';
 
 enum SubCommand {
+  'Open' = 'open',
   'Start' = 'start',
   'Stop' = 'stop',
   'Close' = 'close'
 };
 
 export async function OpCommandHandler (command: Command): Promise<void> {
-  const channel = await discordClient.channels.fetch(DiscordChannelIdOps);
+  const channel = await discordClient.channels.fetch(DiscordChannelIdOps) as TextChannel;
   if (channel.type !== 'text') throw('Ops channel should be a text channel.');
+
+  // Param alias
+  if (command.param === 'init') {
+    command.param = SubCommand.Open;
+  }
 
   // Default param
   if (command.param === null) {
@@ -41,72 +47,94 @@ export async function OpCommandHandler (command: Command): Promise<void> {
   }
 
   // OpCommandHandler
-  const runningOp = runningActivities[Activities.Op] as Op;
+  let runningOp = runningActivities[Activities.Op] as Op;
 
-  if (command.param === SubCommand.Stop) {
-    if (!runningOp) {
-      await command.message.channel.send(`An op is not yet running. Send "op ${SubCommand.Start}" command to start.`);
-      return;
+  switch(command.param) {
+    case SubCommand.Open: {
+      if (command.message.channel.type === 'text') await command.message.delete();
+
+      // Open
+      runningOp = runningActivities[Activities.Op] = await trackMainOutfitOp(channel);
+      await runningOp.open(runningOp);
+
+      break;
     }
-
-    if (command.message.channel.type === 'text') await command.message.delete();
-    await runningOp.stop(runningOp);
-    return;
-  }
-
-  if (command.param === SubCommand.Close) {
-    if (!runningOp) {
-      await command.message.channel.send(`An op is not yet running. Send "op ${SubCommand.Start}" command to start.`);
-      return;
-    }
-
-    if (command.message.channel.type === 'text') await command.message.delete();
-
-    if (runningOp.status <= Status.Running) await runningOp.stop(runningOp);
-
-    await runningOp.close(runningOp);
-
-    delete runningActivities[Activities.Op];
-    return;
-  }
-
-  if (runningOp) {
-    if (command.param) {
-      const member = ps2MainOutfit.members.find(member => member.name.toLowerCase() === command.param.toLowerCase());
-      if (!member) {
-        await command.message.channel.send(`Cannot find member '${command.param}'.`);
-        return;
+    case SubCommand.Start: {
+      if (!runningOp) {
+        // implicit open
+        runningOp = runningActivities[Activities.Op] = await trackMainOutfitOp(channel);
+        await runningOp.open(runningOp);
       }
 
-      const soloReportUser = { user: command.message.author, characterId: member.id };
-      if (runningOp.status <= Status.Running) {
-        (runningOp as Op).soloReports.push(soloReportUser);
-        await command.message.channel.send(`You'll receive a solo op report for '${command.param}' when the current op ends.`);
+      if (command.message.channel.type === 'text') await command.message.delete();
+
+      // Start
+      await runningOp.start(runningOp);
+
+      break;
+    }
+    case SubCommand.Stop: {
+      if (!runningOp) {
+        await command.message.channel.send(`An op is not yet running. Send "op ${SubCommand.Start}" command to start.`);
       } else {
-        await runningOp.sendSoloReport(soloReportUser)
+        if (command.message.channel.type === 'text') await command.message.delete();
+
+        // Stop
+        await runningOp.stop(runningOp);
       }
-      return;
+
+      break;
     }
+    case SubCommand.Close: {
+      if (!runningOp) {
+        await command.message.channel.send(`An op is not yet running. Send "op ${SubCommand.Start}" command to start.`);
+      } else {
+        if (command.message.channel.type === 'text') await command.message.delete();
 
-    await command.message.channel.send(`An op is already running. Send "op ${SubCommand.Close}" command to close the previous op before starting a new one.`);
-    return;
-  }
+        // Stop before close, if started
+        if (runningOp.status === Status.Started) {
+          await runningOp.stop(runningOp);
+        }
 
-  if (command.param !== SubCommand.Start) {
-    await command.message.channel.send(
-      `It's currently not possible to apply for an individual op report.`
-    + `\nYou can apply during and for a short while after we end the op.`
-    );
-    return;
-  }
+        // Close
+        await runningOp.close(runningOp);
 
-  //////////////
+        // Delete from running
+        delete runningActivities[Activities.Op];
+      }
 
-  const runningMessage = await (channel as TextChannel).send(
-    `Started tracking an op. Send "op stop" command to stop tracking in-game events.`
-  + `\nSend "op close" command to stop the op, close voice channels and close applications for indiviual op reports.`
-  + `\nSend a private message to <@!${discordBotUser.id}> saying "op _planetside2username_" to receive an individual op report when we stop the op.`
-  );
-  runningActivities[Activities.Op] = await trackMainOutfitOp(runningMessage);
-  if (command.message.channel.type === 'text') await command.message.delete();
+      break;
+    }
+    default: {
+      // solo report signup
+      if (!runningOp) {
+        await command.message.channel.send(
+          `It's currently not possible to apply for an individual op report.`
+        + `\nYou can apply during and for a short while after we end the op.`
+        );
+      } else {
+        // ps2 username needs to be given
+        if (command.param) {
+          const member = ps2MainOutfit.members.find(member => member.name.toLowerCase() === command.param.toLowerCase());
+
+          // only members have been tracked and can apply
+          if (member) {
+            const soloReportUser = { user: command.message.author, characterId: member.id };
+
+            // sign up when started. send when stopped.
+            if (runningOp.status <= Status.Started) {
+              runningOp.soloReports.push(soloReportUser);
+              await command.message.channel.send(`You'll receive a solo op report for '${command.param}' when the current op ends.`);
+            } else {
+              await runningOp.sendSoloReport(soloReportUser)
+            }
+          } else {
+            await command.message.channel.send(`Cannot find member '${command.param}'.`);
+          }
+        }
+      }
+
+      break;
+    }
+  }  
 };

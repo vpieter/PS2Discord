@@ -13,9 +13,10 @@ export type Command = {
 
 export enum Status {
   'Planned' = 1,
-  'Running' = 2,
-  'Stopped' = 3,
-  'Closed' = 4,
+  'Opened' = 2,
+  'Started' = 3,
+  'Stopped' = 4,
+  'Closed' = 5,
 };
 
 export type Op = {
@@ -24,6 +25,8 @@ export type Op = {
   baseCaptures: Array<FacilityVM>,
   voiceChannels: Array<VoiceChannel>,
   soloReports: Array<{ user: User, characterId: string }>,
+  open: (op: Op) => Promise<void>,
+  start: (op: Op) => Promise<void>,
   stop: (op: Op) => Promise<void>,
   close: (op: Op) => Promise<void>,
   sendSoloReport: (soloReport: { user: User, characterId: string }) => Promise<void>,
