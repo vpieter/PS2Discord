@@ -66,9 +66,10 @@
         } else {
           type = 'string';
           const matchWithoutQuotes = match.slice(1, -1);
-          match = `"<span class="json-select">${ escapeHTML(matchWithoutQuotes) }</span>"`;
+          match = escapeHTML(matchWithoutQuotes);
           const regexURLs = /(https?:\/\/|ftp:\/\/|file:\/\/|www\.)[^\s,;:]+[^\s".,;:]/g;
           match = match.replace(regexURLs, (url) => `<a href="${ url }" class="a">${ url }</a>`);
+          match = `"<span class="json-select">${ match }</span>"`;
         }
       } else if (/true|false/.test(match)) {
         type = 'boolean';
