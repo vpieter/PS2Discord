@@ -34,7 +34,7 @@ export async function trackMainOutfitBaseCaptures(): Promise<void> {
       ps2ControlledBases.push({...facility, contributors});
 
       const runningOp = runningActivities[Activities.Op] as Op;
-      if (runningOp && runningOp.status <= Status.Started) runningOp.baseCaptures.push(facility);
+      if (runningOp && runningOp.status === Status.Started) runningOp.baseCaptures.push(facility);
 
       const message = await sendBaseCaptureMessage(facility).catch(consoleCatch);
       if (!message) return;
