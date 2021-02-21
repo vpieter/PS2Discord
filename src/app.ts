@@ -3,10 +3,11 @@ import { ZoneVM, MainOutfitVM, FactionVM, CapturedFacilityVM } from './ps2-rest-
 import { Client as DiscordClient, ClientUser as DiscordClientUser, Guild } from 'discord.js';
 import { trackMainOutfitMembersOnline, trackMainOutfitBaseCaptures, setDiscordCommandListeners, setPS2DiscordGreetingListener, trackDiscordUsers } from './functions';
 import { DiscordBotToken, DiscordGuildId, KoaPort } from './consts';
-import { consoleCatch, loadStore } from './utils';
+import { consoleCatch } from './utils';
 import { Op, TrackedDiscordUser, Training } from './types';
 import { filter, map, mapValues, sortBy } from 'lodash';
 import { DateTime } from 'luxon';
+import { MyStore } from './my-store';
 import MyKoa from './my-koa';
 
 // Global
@@ -23,28 +24,28 @@ export let discordBotUser: DiscordClientUser;
 export let discordGuild: Guild;
 
 export let runningActivities: {[key: string]: Op | Training} = {};
-export let trackedDiscordUsers: {[key: string]: TrackedDiscordUser} = {};
+export let trackedDiscordUsers = new MyStore<TrackedDiscordUser>('trackedDiscordUsers', temp => {
+  return mapValues(temp, trackedDiscordUser => ({
+    ...trackedDiscordUser,
+    voiceHistory: map(trackedDiscordUser.voiceHistory, voiceHistory => ({
+      ...voiceHistory,
+      date: DateTime.fromISO(voiceHistory.date as any as string),
+    })),
+  }));
+});
 
-async function init() {
-  // store
-  await loadStore(ps2ControlledBases, 'ps2ControlledBases');
-  await loadStore(trackedDiscordUsers, 'trackedDiscordUsers', temp => {
-    return mapValues(temp, trackedDiscordUser => ({
-      ...trackedDiscordUser,
-      voiceHistory: map(trackedDiscordUser.voiceHistory, voiceHistory => ({
-        ...voiceHistory,
-        date: DateTime.fromISO(voiceHistory.date as any as string),
-      })),
-    }));
-  });
-
+const init = async () => {
   // koa
-  koa.indexRouter.get('index', '/', async function (ctx) {
+  koa.indexRouter.get('/', async (ctx) => {
     ctx.body = await ctx.render('index', { title: 'index', runningActivities } );
+  });
+  koa.indexRouter.post('/save', async (ctx) => {
+    await trackedDiscordUsers.save();
+    ctx.redirect('/');
   });
 
   koa.expose('activity', async () => {
-    const trackedMembers = filter(trackedDiscordUsers, user => user.member);
+    const trackedMembers = filter(trackedDiscordUsers.value(), user => user.member);
     const activeMembers = filter(trackedMembers, member => member.voiceHistory.length > 0);
     const sortedMembers = sortBy(activeMembers, member => Math.abs(member.voiceHistory[0].date.diffNow('milliseconds').milliseconds));
 
@@ -61,7 +62,7 @@ async function init() {
   koa.debugExpose('ps2MainOutfit', async () => ps2MainOutfit);
   koa.debugExpose('ps2ControlledBases', async () => ps2ControlledBases);
   koa.debugExpose('runningActivities', async () => runningActivities);
-  koa.debugExpose('trackedDiscordUsers', async () => trackedDiscordUsers);
+  koa.debugExpose('trackedDiscordUsers', async () => trackedDiscordUsers.value());
 
   koa.init();
 

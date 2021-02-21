@@ -5,7 +5,7 @@ import { ps2MainOutfit, trackedDiscordUsers } from '../app';
 import { Command } from '../types';
 
 export async function ActivityCommandHandler (command: Command): Promise<void> {
-  const trackedMembers = filter(trackedDiscordUsers, user => user.member);
+  const trackedMembers = filter(trackedDiscordUsers.value(), user => user.member);
   const activeMembers = filter(trackedMembers, member => member.voiceHistory.length > 0);
 
   const activity = map(activeMembers, member => {
