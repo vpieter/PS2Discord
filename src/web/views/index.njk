@@ -6,12 +6,18 @@
 {% block styles %}
 {{ super() }}
 <style>
+  h1 {
+    text-transform: uppercase;
+    font-weight: bold;
+  }
+
   .runningActivities {
     display: grid;
     grid-template-columns: repeat(1, minmax(0, 1fr));
     gap: 10px;
+    margin-bottom: 20px;
   }
-  @media only screen and (min-width : 481px) {
+  @media only screen and (min-width : 641px) {
     .runningActivities {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -34,9 +40,39 @@
     color: rgb(var(--rgb-green));
   }
 
-  .runningActivities div h1 {
+  .runningActivities div h2 {
     text-transform: uppercase;
     font-weight: bold;
+  }
+
+  .adminActions {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .adminActions form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 8px;
+  }
+  .adminActions form input[type="submit"] {
+    background: rgba(var(--rgb-red), 0);
+    border: none;
+    border-radius: 8px;
+    color: rgba(var(--rgb-red), 1);
+    cursor: pointer;
+    font: 12px system-ui, sans-serif;
+    padding: 6px 12px;
+
+    transition: all .1s ease-out;
+  }
+  .adminActions form input[type="submit"]:hover {
+    background: rgba(var(--rgb-red), 1);
+    color: rgba(var(--rgb-blue-dark), 1);
   }
 </style>
 {% endblock styles %}
@@ -45,22 +81,28 @@
 {{ super() }}
 <section class="runningActivities">
   <div class="{% if opRunning %}running{% endif %}">
-    <h1>
+    <h2>
       {% if opRunning %}
         op in progress!
       {% else %}
         No op in progress
       {% endif %}
-    </h1>
+    </h2>
   </div>
   <div class="{% if trainingRunning %}running{% endif %}">
-    <h1>
+    <h2>
       {% if trainingRunning %}
         training in progress!
       {% else %}
         No training in progress
       {% endif %}
-    </h1>
+    </h2>
   </div>
+</section>
+
+<section class="adminActions">
+  <form action="save" method="post">
+    <input type="submit" value="trigger manual store save" />
+  </form>
 </section>
 {% endblock body %}

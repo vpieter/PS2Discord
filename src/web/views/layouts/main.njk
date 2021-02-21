@@ -2,7 +2,8 @@
 <html>
 <head>
   {% block head %}
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="initial-scale=1" />
   <title>{% block title %}{% block pageTitle %}{{ title | capitalize }}{% endblock pageTitle %} - BJayBot{% endblock title %}</title>
   {% block styles %}
   <style>
@@ -110,8 +111,9 @@
     }
     header h1, header h2 {
       display: inline-block;
-      font-family: 'comic sans ms';
+      font-family: 'comic sans ms', 'comic sans', /* fuck it, meme font ded */ 'helvetica neue', helvetica, arial, sans-serif;
       font-weight: bold;
+      text-transform: none;
     }
     header h2::before {
       content: ' ';
