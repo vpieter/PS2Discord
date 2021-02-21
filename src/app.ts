@@ -73,7 +73,7 @@ async function init() {
   await discordClient.login(DiscordBotToken);
 };
 
-async function discordReady() {
+const discordReady = async () => {
   if (!discordClient.user || !discordClient.user.bot) throw('Discord bot user not found.');
   discordBotUser = discordClient.user;
 
@@ -82,7 +82,7 @@ async function discordReady() {
   discordGuild = guild;
 
   // Functions
-  const PS2Init = async function() {
+  const PS2Init = async () => {
     // PS2RestClient
     ps2RestClient = PS2RestClient.getInstance();
     ps2Factions = await ps2RestClient.getFactions();

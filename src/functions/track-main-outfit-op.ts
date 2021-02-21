@@ -109,7 +109,7 @@ export async function trackMainOutfitOp(channel: TextChannel | DMChannel | NewsC
       {
         characters: ps2MainOutfit.members.map(member => member.id),
       }
-    )
+    );
 
     // subscribe experience
     ps2StreamingClientCharacters.subscribe(

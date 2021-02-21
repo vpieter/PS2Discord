@@ -24,40 +24,41 @@ export async function trackMainOutfitBaseCaptures(): Promise<void> {
       const facilityDTO = data as FacilityControlDTO;
       if (facilityDTO.outfit_id !== ps2MainOutfit.id) return;
       if (facilityDTO.old_faction_id === ps2MainOutfit.faction.id) return;
-  
+
       const channel = await discordClient.channels.fetch(DiscordChannelIdFacility);
       if (channel.type !== 'text') throw(`Cannot post base capture messages in non-text channel (${channel.id}).`);
-  
+
       const facility = await ps2RestClient.getFacility(facilityDTO.facility_id).catch(consoleCatch);
       if (!facility) return;
       const contributors: Array<string> = [];
       ps2ControlledBases.push({...facility, contributors});
+
       const runningOp = runningActivities[Activities.Op] as Op;
       if (runningOp && runningOp.status <= Status.Started) runningOp.baseCaptures.push(facility);
-  
+
       const message = await sendBaseCaptureMessage(facility).catch(consoleCatch);
       if (!message) return;
       ps2ControlledBaseMessages[facility.id] = message;
       wait(8000).then(()=>{
         setBaseCaptureMessageContributors(message, contributors).catch(consoleCatch);
       });
-  
+
       await debouncedSetBaseCapturesTopic()?.catch(consoleCatch);
     });
-  
+
     ps2StreamingClientWorld.subscribe(PS2StreamingEvent.FacilityControl, async data => {
       const facilityDTO = data as FacilityControlDTO;
       if (facilityDTO.new_faction_id === ps2MainOutfit.faction.id) return;
       if (!some(ps2ControlledBases, facility => facility.id === facilityDTO.facility_id)) return;
-  
+
       remove(ps2ControlledBases, facility => facility.id === facilityDTO.facility_id);
-  
+
       await debouncedSetBaseCapturesTopic()?.catch(consoleCatch);
     });
-  
+
     ps2StreamingClientWorld.subscribe(PS2StreamingEvent.ContinentLock, async data => {
       const continentLockDTO = data as ContinentLockDTO;
-  
+
       remove(ps2ControlledBases, facility => facility.zone.id === continentLockDTO.zone_id);
       await debouncedSetBaseCapturesTopic()?.catch(consoleCatch);
     });
@@ -67,22 +68,22 @@ export async function trackMainOutfitBaseCaptures(): Promise<void> {
     ps2StreamingClientCharacters.subscribe(PS2StreamingEvent.PlayerFacilityCapture, async data => {
       const playerFacilityCaptureDTO = data as PlayerFacilityDto;
       if (playerFacilityCaptureDTO.outfit_id !== ps2MainOutfit.id) return;
-  
+
       let i = 0;
       const intervalID = setInterval(()=>{
         if (i++ === 10) clearInterval(intervalID);
-  
+
         const controlledBase = ps2ControlledBases.find(base => base.id === playerFacilityCaptureDTO.facility_id);
         if (!controlledBase) return;
-  
+
         const newContributor = !controlledBase.contributors.find(characterID => characterID === playerFacilityCaptureDTO.character_id);
         if (newContributor) {
           const contributor = ps2MainOutfit.members.find(member => member.id === playerFacilityCaptureDTO.character_id);
           if (!contributor) return;
-  
+
           controlledBase.contributors.push(contributor.name);
         }
-  
+
         clearInterval(intervalID);
       }, 1000,);
     }, { characters: ps2MainOutfit.members.map(member => member.id) });
