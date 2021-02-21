@@ -1,7 +1,14 @@
 {% extends "layouts/main.njk" %}
 
-{% set opRunning = runningActivities['op'] != null %}
-{% set trainingRunning = runningActivities['training'] != null %}
+{% set op = runningActivities[Activities.Op] %}
+{% set training = runningActivities[Activities.Training] %}
+
+{% set opRunning = op != null %}
+{% set trainingRunning = training != null %}
+
+{% set opStatus = op['status'] %}
+{% set opEventCount = op['events'].length %}
+{% set opBaseCaptureCount = op['baseCaptures'].length %}
 
 {% block styles %}
 {{ super() }}
@@ -29,26 +36,45 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 8px;
+    padding: 16px 8px;
 
     background: rgba(var(--rgb-grey), .1);
     border-radius: 8px;
     color: rgb(var(--rgb-grey));
-  }
-  .runningActivities div.running {
-    background: rgba(var(--rgb-green-dark), .2);
-    color: rgb(var(--rgb-green));
   }
 
   .runningActivities div h2 {
     text-transform: uppercase;
     font-weight: bold;
   }
+  .runningActivities div.running h2 {
+    color: rgb(var(--rgb-green));
+  }
+
+  .runningActivities div dl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-gap: 0 8px;
+    margin-top: 12px;
+    text-align: left;
+    width: 100%;
+  }
+  .runningActivities div dt {
+    padding-left: 8px;
+    text-align: left;
+  }
+  .runningActivities div dt::after {
+    content: ':'
+  }
+  .runningActivities div dd {
+    color: rgb(var(--rgb-white));
+    margin-bottom: 6px;
+  }
+  {{ styles.selectable('.runningActivities div dd', '--rgb-white') }}
 
   .adminActions {
-    display: grid;
-    grid-template-columns: repeat(1, minmax(0, 1fr));
-    gap: 10px;
+    display: flex;
+    justify-content: center;
     margin-bottom: 20px;
   }
   .adminActions form {
@@ -57,22 +83,22 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 8px;
   }
   .adminActions form input[type="submit"] {
     background: rgba(var(--rgb-red), 0);
-    border: none;
-    border-radius: 8px;
+    border: 1px solid rgba(var(--rgb-red), 0);
+    border-radius: 4px;
     color: rgba(var(--rgb-red), 1);
     cursor: pointer;
     font: 12px system-ui, sans-serif;
-    padding: 6px 12px;
+    padding: 4px 12px;
+    text-shadow: 0 1px 0 black; /* default text-shadow */
 
     transition: all .1s ease-out;
   }
   .adminActions form input[type="submit"]:hover {
-    background: rgba(var(--rgb-red), 1);
-    color: rgba(var(--rgb-blue-dark), 1);
+    background: rgba(var(--rgb-red), .1);
+    border: 1px solid rgba(var(--rgb-red), 1);
   }
 </style>
 {% endblock styles %}
@@ -88,6 +114,18 @@
         No op in progress
       {% endif %}
     </h2>
+    {% if opRunning %}
+      <dl>
+        <dt>Status</dt>
+        <dd>{{ Status[opStatus] }}</dd>
+
+        <dt>Events tracked</dt>
+        <dd>{{ opEventCount }}</dd>
+
+        <dt>Base captures</dt>
+        <dd>{{ opBaseCaptureCount }}</dd>
+      </dl>
+    {% endif %}
   </div>
   <div class="{% if trainingRunning %}running{% endif %}">
     <h2>
@@ -104,5 +142,20 @@
   <form action="save" method="post">
     <input type="submit" value="trigger manual store save" />
   </form>
+
+  {#
+    <form action="op/open" method="post">
+      <input type="submit" value="open op" />
+    </form>
+    <form action="op/start" method="post">
+      <input type="submit" value="start op" />
+    </form>
+    <form action="op/stop" method="post">
+      <input type="submit" value="stop op" />
+    </form>
+    <form action="op/close" method="post">
+      <input type="submit" value="close op" />
+    </form>
+  #}
 </section>
 {% endblock body %}

@@ -18,7 +18,7 @@ export async function setDiscordCommandListeners(): Promise<void> {
     if (commandName === null) return;
 
     const command: Command = { mention, commandName, param, message };
-    const handler = (CommandHandlers as any)[command.commandName];
+    const handler = CommandHandlers[command.commandName];
     if (isFunction(handler)) handler(command);
   });
   return Promise.resolve();

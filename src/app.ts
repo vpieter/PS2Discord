@@ -1,10 +1,10 @@
 import { PS2RestClient } from './ps2-rest-client';
 import { ZoneVM, MainOutfitVM, FactionVM, CapturedFacilityVM } from './ps2-rest-client/types';
 import { Client as DiscordClient, ClientUser as DiscordClientUser, Guild } from 'discord.js';
-import { trackMainOutfitMembersOnline, trackMainOutfitBaseCaptures, setDiscordCommandListeners, setPS2DiscordGreetingListener, trackDiscordUsers } from './functions';
-import { DiscordBotToken, DiscordGuildId, KoaPort } from './consts';
+import { trackMainOutfitMembersOnline, trackMainOutfitBaseCaptures, setDiscordCommandListeners, setPS2DiscordGreetingListener, trackDiscordUsers, trackMainOutfitOp } from './functions';
+import { Activities, DiscordBotToken, DiscordGuildId, KoaPort } from './consts';
 import { consoleCatch } from './utils';
-import { Op, TrackedDiscordUser, Training } from './types';
+import { Op, Status, TrackedDiscordUser, Training } from './types';
 import { filter, map, mapValues, sortBy } from 'lodash';
 import { DateTime } from 'luxon';
 import { MyStore } from './my-store';
@@ -37,7 +37,7 @@ export let trackedDiscordUsers = new MyStore<TrackedDiscordUser>('trackedDiscord
 const init = async () => {
   // koa
   koa.indexRouter.get('/', async (ctx) => {
-    ctx.body = await ctx.render('index', { title: 'index', runningActivities } );
+    ctx.body = await ctx.render('index', { title: 'index', runningActivities, Status, Activities } );
   });
   koa.indexRouter.post('/save', async (ctx) => {
     await trackedDiscordUsers.save();

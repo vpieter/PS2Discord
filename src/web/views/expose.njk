@@ -34,6 +34,12 @@
   pre .a, pre .a:active, pre .a:visited { color: var(--color-link); }
   pre .a:hover { color: var(--color-link-hover); }
   pre .json-select { -moz-user-select: all; -webkit-user-select: all; user-select: all; }
+
+  {{ styles.selectable('pre', '--rgb-yellow-light') }}
+
+  pre::selection, pre *::selection {
+    background-color: rgba(var(--rgb-yellow-light), .2);
+  }
 </style>
 {% endblock styles %}
 
