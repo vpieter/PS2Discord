@@ -1,7 +1,7 @@
 import { GuildMember, PartialGuildMember, VoiceState } from 'discord.js';
 import { DateTime } from 'luxon';
 import { discordClient, koa, trackedDiscordUsers } from '../app';
-import { DiscordRoleIdMember } from '../consts';
+import { DiscordGuildId, DiscordRoleIdMember } from '../consts';
 import { TrackedDiscordUser } from '../types';
 
 export async function trackDiscordUsers(): Promise<void> {
@@ -10,6 +10,7 @@ export async function trackDiscordUsers(): Promise<void> {
 
   // internal functions
   const voiceStatusUpdateListener = async (oldState: VoiceState, newState: VoiceState) => {
+    if (newState.guild.id !== DiscordGuildId) return;
     if (newState.channelID === null || newState.member === null) return;
 
     trackedDiscordUsers.set(newState.member.user.id,
@@ -33,6 +34,7 @@ export async function trackDiscordUsers(): Promise<void> {
   };
 
   const guildMemberUpdateListener = async (oldMember: GuildMember | PartialGuildMember, newMember: GuildMember) => {
+    if (newMember.guild.id !== DiscordGuildId) return;
     if (newMember.id === null) return;
 
     trackedDiscordUsers.set(newMember.user.id,
