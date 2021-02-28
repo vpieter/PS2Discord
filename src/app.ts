@@ -1,8 +1,8 @@
 import { PS2RestClient } from './ps2-rest-client';
 import { ZoneVM, MainOutfitVM, FactionVM, CapturedFacilityVM } from './ps2-rest-client/types';
 import { Client as DiscordClient, ClientUser as DiscordClientUser, Guild } from 'discord.js';
-import { trackMainOutfitMembersOnline, trackMainOutfitBaseCaptures, setPS2DiscordGreetingListener, trackDiscordUsers } from './functions';
-import { DiscordCommandListener } from './components';
+import { trackMainOutfitMembersOnline, trackMainOutfitBaseCaptures, trackDiscordUsers } from './functions';
+import { DiscordCommandListener, DiscordGreeter } from './components';
 import { Activities, DiscordBotToken, DiscordGuildId, KoaPort } from './consts';
 import { consoleCatch } from './utils';
 import { Op, Status, TrackedDiscordUser, Training } from './types';
@@ -23,6 +23,7 @@ export let ps2ControlledBases: Array<CapturedFacilityVM> = [];
 export let discordClient = new DiscordClient();
 export let discordBotUser: DiscordClientUser;
 export let discordGuild: Guild;
+export const discordGreeter = new DiscordGreeter(discordClient);
 export const discordCommandListener = new DiscordCommandListener(discordClient);
 
 export let runningActivities: {[key: string]: Op | Training} = {};
@@ -93,7 +94,7 @@ const discordReady = async () => {
     ps2MainOutfit = await ps2RestClient.getMainOutfit();
 
     // PS2Functions
-    await setPS2DiscordGreetingListener();
+    discordGreeter.start();
 
     await trackMainOutfitBaseCaptures();
     await trackMainOutfitMembersOnline();

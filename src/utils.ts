@@ -1,11 +1,8 @@
 import jsonfile from 'jsonfile';
-import { map } from 'lodash';
-import { parse } from 'path';
-import { TrackedDiscordUser } from './types';
 
 export function voidCatch(reason: any) {
   return;
-}
+};
 
 export function consoleCatch(reason: any) {
   if (reason === undefined) return;
@@ -38,4 +35,4 @@ export async function loadStore<T>(target: T, name: string, mapper?: (raw: T) =>
     temp = mapper(temp);
   }
   Object.assign(target, temp as T);
-}
+};
