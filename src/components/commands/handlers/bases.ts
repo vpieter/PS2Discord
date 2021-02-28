@@ -1,5 +1,5 @@
-import { ps2ControlledBases, ps2MainOutfit } from '../app';
 import { Command } from '../types';
+import { ps2ControlledBases, ps2MainOutfit } from '../../../app';
 
 export async function BasesCommandHandler (command: Command): Promise<void> {
   const basesText = ps2ControlledBases.length ?

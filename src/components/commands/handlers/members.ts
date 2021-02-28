@@ -1,6 +1,6 @@
-import { consoleCatch } from '../utils';
 import { Command } from '../types';
-import { ps2RestClient } from '../app';
+import { consoleCatch } from '../../../utils';
+import { ps2RestClient } from '../../../app';
 import { MessageEmbed } from 'discord.js';
 
 export async function MembersCommandHandler (command: Command): Promise<void> {

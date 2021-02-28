@@ -1,7 +1,8 @@
-import { Command, Training } from '../types';
-import { startTraining } from '../functions';
-import { discordClient, discordGuild, runningActivities } from '../app';
-import { Activities, DiscordChannelIdMentoring as DiscordChannelIdTraining, DiscordRoleIdLeader, DiscordRoleIdOfficer, DiscordRoleIdSpecialist } from '../consts';
+import { Command } from '../types';
+import { Training } from '../../../types';
+import { startTraining } from '../../../functions';
+import { discordClient, discordGuild, runningActivities } from '../../../app';
+import { Activities, DiscordChannelIdMentoring as DiscordChannelIdTraining, DiscordRoleIdLeader, DiscordRoleIdOfficer, DiscordRoleIdSpecialist } from '../../../consts';
 import { TextChannel } from 'discord.js';
 
 export async function TrainingCommandHandler (command: Command): Promise<void> {

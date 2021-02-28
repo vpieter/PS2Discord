@@ -1,8 +1,8 @@
+import { Command } from '../types';
 import { MessageEmbed } from 'discord.js';
 import { filter, map } from 'lodash';
 import { DateTime, Interval } from 'luxon';
-import { ps2MainOutfit, trackedDiscordUsers } from '../app';
-import { Command } from '../types';
+import { ps2MainOutfit, trackedDiscordUsers } from '../../../app';
 
 export async function ActivityCommandHandler (command: Command): Promise<void> {
   const trackedMembers = filter(trackedDiscordUsers.value(), user => user.member);

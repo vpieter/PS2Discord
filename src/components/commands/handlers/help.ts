@@ -1,6 +1,6 @@
 import { Command } from '../types';
-import { Commands, DiscordChannelIdOutfit, DiscordChannelIdFacility } from '../consts';
-import { discordBotUser, ps2MainOutfit } from '../app'
+import { Commands, DiscordChannelIdOutfit, DiscordChannelIdFacility } from '../../../consts';
+import { discordBotUser, ps2MainOutfit } from '../../../app'
 
 export async function HelpCommandHandler (command: Command): Promise<void> {
   switch (command.param) {

@@ -1,7 +1,8 @@
-import { Command, Op, Status } from '../types';
-import { trackMainOutfitOp } from '../functions';
-import { discordGuild, runningActivities, discordClient, ps2MainOutfit, discordBotUser } from '../app';
-import { Activities, DiscordChannelIdOps, DiscordRoleIdLeader, DiscordRoleIdMember, DiscordRoleIdOfficer, DiscordRoleIdSpecialist } from '../consts';
+import { Command } from '../types';
+import { Op, Status } from '../../../types';
+import { trackMainOutfitOp } from '../../../functions';
+import { discordGuild, runningActivities, discordClient, ps2MainOutfit, discordBotUser } from '../../../app';
+import { Activities, DiscordChannelIdOps, DiscordRoleIdLeader, DiscordRoleIdMember, DiscordRoleIdOfficer, DiscordRoleIdSpecialist } from '../../../consts';
 import { TextChannel } from 'discord.js';
 
 enum SubCommand {

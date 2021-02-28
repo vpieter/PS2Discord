@@ -1,7 +1,8 @@
 import { PS2RestClient } from './ps2-rest-client';
 import { ZoneVM, MainOutfitVM, FactionVM, CapturedFacilityVM } from './ps2-rest-client/types';
 import { Client as DiscordClient, ClientUser as DiscordClientUser, Guild } from 'discord.js';
-import { trackMainOutfitMembersOnline, trackMainOutfitBaseCaptures, setDiscordCommandListeners, setPS2DiscordGreetingListener, trackDiscordUsers, trackMainOutfitOp } from './functions';
+import { trackMainOutfitMembersOnline, trackMainOutfitBaseCaptures, setPS2DiscordGreetingListener, trackDiscordUsers } from './functions';
+import { DiscordCommandListener } from './components';
 import { Activities, DiscordBotToken, DiscordGuildId, KoaPort } from './consts';
 import { consoleCatch } from './utils';
 import { Op, Status, TrackedDiscordUser, Training } from './types';
@@ -11,7 +12,7 @@ import { MyStore } from './my-store';
 import MyKoa from './my-koa';
 
 // Global
-export let koa = new MyKoa(KoaPort);
+export const koa = new MyKoa(KoaPort);
 
 export let ps2RestClient: PS2RestClient;
 export let ps2Factions: Array<FactionVM> = [];
@@ -22,6 +23,7 @@ export let ps2ControlledBases: Array<CapturedFacilityVM> = [];
 export let discordClient = new DiscordClient();
 export let discordBotUser: DiscordClientUser;
 export let discordGuild: Guild;
+export const discordCommandListener = new DiscordCommandListener(discordClient);
 
 export let runningActivities: {[key: string]: Op | Training} = {};
 export let trackedDiscordUsers = new MyStore<TrackedDiscordUser>('trackedDiscordUsers', temp => {
@@ -97,7 +99,7 @@ const discordReady = async () => {
     await trackMainOutfitMembersOnline();
     await trackDiscordUsers();
 
-    await setDiscordCommandListeners();
+    discordCommandListener.start();
 
     console.log(`PS2Discord running for ${ps2MainOutfit.alias}.`);
   };

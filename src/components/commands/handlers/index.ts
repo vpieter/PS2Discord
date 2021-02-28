@@ -1,4 +1,4 @@
-import { Commands } from '../consts';
+import { Commands } from '../commands';
 import { HelpCommandHandler } from './help';
 import { OnlineCommandHandler } from './online';
 import { BasesCommandHandler } from './bases';

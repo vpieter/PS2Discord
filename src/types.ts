@@ -1,15 +1,7 @@
-import { Commands } from './consts';
-import { Message as DiscordMessage, User, VoiceChannel } from 'discord.js';
+import { User, VoiceChannel } from 'discord.js';
 import { DeathDto, GainExperienceDto } from './ps2-streaming-client/types';
 import { FacilityVM } from './ps2-rest-client/types';
 import { DateTime } from 'luxon';
-
-export type Command = {
-  mention: string;
-  commandName: Commands;
-  param: string;
-  message: DiscordMessage;
-}
 
 export enum Status {
   'Planned' = 1,
