@@ -11,14 +11,6 @@ import { DiscordCategoryIdOps, DiscordChannelIdOpsLobby } from '../consts';
 import { consoleCatch, wait } from '../utils';
 import PQueue from 'p-queue';
 
-const experienceNamesHardcoded = {
-  '4': 'Heal',
-  '51': 'Squad heal',
-  '7': 'Revive',
-  '53': 'Squad revive',
-  '30': 'Transport Assist',
-} as any;
-
 type Leaderboard = {
   score: number,
   entries: Array<LeaderboardEntry>
