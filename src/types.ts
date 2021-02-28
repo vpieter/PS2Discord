@@ -29,19 +29,3 @@ export type Training = {
   participantIds: Array<string>,
   stop: (training: Training)=>void,
 };
-
-export type TrackedDiscordUser = {
-  id: string,
-  username: string,
-  displayName: string,
-  displayNameHistory: Array<{
-    date: DateTime,
-    displayName: string,
-  }>,
-  voiceHistory: Array<{
-    date: DateTime,
-    channelName: string,
-  }>,
-  member: boolean,
-  role: string,
-};

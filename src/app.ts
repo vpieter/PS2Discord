@@ -1,20 +1,18 @@
 import { PS2RestClient } from './ps2-rest-client';
 import { ZoneVM, MainOutfitVM, FactionVM, CapturedFacilityVM } from './ps2-rest-client/types';
 import { Client as DiscordClient, ClientUser as DiscordClientUser, Guild } from 'discord.js';
-import { trackMainOutfitMembersOnline, trackMainOutfitBaseCaptures, trackDiscordUsers } from './functions';
-import { DiscordCommandListener, DiscordGreeter } from './components';
+import { trackMainOutfitMembersOnline, trackMainOutfitBaseCaptures } from './functions';
+import { ActivityTracker, DiscordCommandListener, DiscordGreeter } from './components';
 import { Activities, DiscordBotToken, DiscordGuildId, KoaPort } from './consts';
 import { consoleCatch } from './utils';
-import { Op, Status, TrackedDiscordUser, Training } from './types';
-import { filter, map, mapValues, sortBy } from 'lodash';
-import { DateTime } from 'luxon';
-import { MyStore } from './my-store';
+import { Op, Status, Training } from './types';
+import { filter, map, sortBy } from 'lodash';
 import MyKoa from './my-koa';
 
 // Global
 export const koa = new MyKoa(KoaPort);
 
-export let ps2RestClient: PS2RestClient;
+export const ps2RestClient = PS2RestClient.getInstance();
 export let ps2Factions: Array<FactionVM> = [];
 export let ps2Zones: Array<ZoneVM> = [];
 export let ps2MainOutfit: MainOutfitVM;
@@ -23,19 +21,11 @@ export let ps2ControlledBases: Array<CapturedFacilityVM> = [];
 export let discordClient = new DiscordClient();
 export let discordBotUser: DiscordClientUser;
 export let discordGuild: Guild;
-export const discordGreeter = new DiscordGreeter(discordClient);
+export const activityTracker = new ActivityTracker(discordClient);
 export const discordCommandListener = new DiscordCommandListener(discordClient);
+export const discordGreeter = new DiscordGreeter(discordClient);
 
 export let runningActivities: {[key: string]: Op | Training} = {};
-export let trackedDiscordUsers = new MyStore<TrackedDiscordUser>('trackedDiscordUsers', temp => {
-  return mapValues(temp, trackedDiscordUser => ({
-    ...trackedDiscordUser,
-    voiceHistory: map(trackedDiscordUser.voiceHistory, voiceHistory => ({
-      ...voiceHistory,
-      date: DateTime.fromISO(voiceHistory.date as any as string),
-    })),
-  }));
-});
 
 const init = async () => {
   // koa
@@ -43,12 +33,12 @@ const init = async () => {
     ctx.body = await ctx.render('index', { title: 'index', runningActivities, Status, Activities } );
   });
   koa.indexRouter.post('/save', async (ctx) => {
-    await trackedDiscordUsers.save();
+    await activityTracker.activityStore.save();
     ctx.redirect('/');
   });
 
   koa.expose('activity', async () => {
-    const trackedMembers = filter(trackedDiscordUsers.value(), user => user.member);
+    const trackedMembers = filter(activityTracker.activityStore.value(), user => user.member);
     const activeMembers = filter(trackedMembers, member => member.voiceHistory.length > 0);
     const sortedMembers = sortBy(activeMembers, member => Math.abs(member.voiceHistory[0].date.diffNow('milliseconds').milliseconds));
 
@@ -65,7 +55,7 @@ const init = async () => {
   koa.debugExpose('ps2MainOutfit', async () => ps2MainOutfit);
   koa.debugExpose('ps2ControlledBases', async () => ps2ControlledBases);
   koa.debugExpose('runningActivities', async () => runningActivities);
-  koa.debugExpose('trackedDiscordUsers', async () => trackedDiscordUsers.value());
+  koa.debugExpose('trackedDiscordUsers', async () => activityTracker.activityStore.value());
 
   koa.init();
 
@@ -88,19 +78,18 @@ const discordReady = async () => {
   // Functions
   const PS2Init = async () => {
     // PS2RestClient
-    ps2RestClient = PS2RestClient.getInstance();
-    ps2Factions = await ps2RestClient.getFactions();
-    ps2Zones = await ps2RestClient.getZones();
-    ps2MainOutfit = await ps2RestClient.getMainOutfit();
+    [ps2Factions, ps2Zones, ps2MainOutfit] = await Promise.all([
+      ps2RestClient.getFactions(),
+      ps2RestClient.getZones(),
+      ps2RestClient.getMainOutfit(),
+    ]);
 
-    // PS2Functions
+    // Start PS2Discord components
+    activityTracker.start();
+    discordCommandListener.start();
     discordGreeter.start();
-
     await trackMainOutfitBaseCaptures();
     await trackMainOutfitMembersOnline();
-    await trackDiscordUsers();
-
-    discordCommandListener.start();
 
     console.log(`PS2Discord running for ${ps2MainOutfit.alias}.`);
   };

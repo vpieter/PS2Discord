@@ -2,10 +2,10 @@ import { Command } from '../types';
 import { MessageEmbed } from 'discord.js';
 import { filter, map } from 'lodash';
 import { DateTime, Interval } from 'luxon';
-import { ps2MainOutfit, trackedDiscordUsers } from '../../../app';
+import { activityTracker, ps2MainOutfit } from '../../../app';
 
 export async function ActivityCommandHandler (command: Command): Promise<void> {
-  const trackedMembers = filter(trackedDiscordUsers.value(), user => user.member);
+  const trackedMembers = filter(activityTracker.activityStore.value(), user => user.member);
   const activeMembers = filter(trackedMembers, member => member.voiceHistory.length > 0);
 
   const activity = map(activeMembers, member => {
