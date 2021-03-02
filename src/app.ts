@@ -5,8 +5,9 @@ import { trackMainOutfitMembersOnline, trackMainOutfitBaseCaptures } from './fun
 import { ActivityTracker, DiscordCommandListener, DiscordGreeter } from './components';
 import { Activities, DiscordBotToken, DiscordGuildId, KoaPort } from './consts';
 import { consoleCatch } from './utils';
-import { Op, Status, Training } from './types';
+import { Op, Status } from './types';
 import { filter, map, sortBy } from 'lodash';
+import Training from './components/training';
 import MyKoa from './my-koa';
 
 // Global
@@ -73,6 +74,7 @@ const discordReady = async () => {
 
   const guild = discordClient.guilds.resolve(DiscordGuildId);
   if (!guild) throw('Guild not found.');
+  if (!guild.available) throw('Guild not available.');
   discordGuild = guild;
 
   // Functions

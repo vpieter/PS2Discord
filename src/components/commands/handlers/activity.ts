@@ -3,6 +3,7 @@ import { MessageEmbed } from 'discord.js';
 import { filter, map } from 'lodash';
 import { DateTime, Interval } from 'luxon';
 import { activityTracker, ps2MainOutfit } from '../../../app';
+import { getDiscordMention } from '../../../utils';
 
 export async function ActivityCommandHandler (command: Command): Promise<void> {
   const trackedMembers = filter(activityTracker.activityStore.value(), user => user.member);
@@ -10,7 +11,7 @@ export async function ActivityCommandHandler (command: Command): Promise<void> {
 
   const activity = map(activeMembers, member => {
     const duration = Interval.fromDateTimes(member.voiceHistory[0].date , DateTime.local()).toDuration();
-    return `<@${member.id}> last seen ${duration.toFormat('d')} days ago in "${member.voiceHistory[0].channelName}"`;
+    return `${getDiscordMention(member.id)} last seen ${duration.toFormat('d')} days ago in "${member.voiceHistory[0].channelName}"`;
   });
 
   const activityString = activity.length

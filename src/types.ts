@@ -1,7 +1,6 @@
 import { User, VoiceChannel } from 'discord.js';
 import { DeathDto, GainExperienceDto } from './ps2-streaming-client/types';
 import { FacilityVM } from './ps2-rest-client/types';
-import { DateTime } from 'luxon';
 
 export enum Status {
   'Planned' = 1,
@@ -22,10 +21,4 @@ export type Op = {
   stop: (op: Op) => Promise<void>,
   close: (op: Op) => Promise<void>,
   sendSoloReport: (soloReport: { user: User, characterId: string }) => Promise<void>,
-};
-
-export type Training = {
-  voiceChannels: Array<VoiceChannel>,
-  participantIds: Array<string>,
-  stop: (training: Training)=>void,
 };

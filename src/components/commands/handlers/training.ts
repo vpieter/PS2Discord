@@ -1,12 +1,11 @@
 import { Command } from '../types';
-import { Training } from '../../../types';
-import { startTraining } from '../../../functions';
 import { discordClient, discordGuild, runningActivities } from '../../../app';
-import { Activities, DiscordChannelIdMentoring as DiscordChannelIdTraining, DiscordRoleIdLeader, DiscordRoleIdOfficer, DiscordRoleIdSpecialist } from '../../../consts';
+import { Activities, DiscordChannelIdMentoring, DiscordRoleIdLeader, DiscordRoleIdOfficer, DiscordRoleIdSpecialist } from '../../../consts';
 import { TextChannel } from 'discord.js';
+import Training from '../../training';
 
 export async function TrainingCommandHandler (command: Command): Promise<void> {
-  const channel = await discordClient.channels.fetch(DiscordChannelIdTraining);
+  const channel = await discordClient.channels.fetch(DiscordChannelIdMentoring);
   if (channel.type !== 'text') throw('Training channel should be a text channel.');
 
   // Staff permission
@@ -32,7 +31,7 @@ export async function TrainingCommandHandler (command: Command): Promise<void> {
     }
 
     if (command.message.channel.type === 'text') await command.message.delete();
-    await runningTraining.stop(runningTraining);
+    await runningTraining.stop(channel as TextChannel);
     delete runningActivities[Activities.Training];
     return;
   }
@@ -45,6 +44,9 @@ export async function TrainingCommandHandler (command: Command): Promise<void> {
   //////////////
 
   const runningMessage = await (channel as TextChannel).send('Started a training. Send "training stop" command to stop.');
-  runningActivities[Activities.Training] = await startTraining(runningMessage);
+  const training = new Training(discordClient, discordGuild, runningMessage);
+  training.start();
+
+  runningActivities[Activities.Training] = training;
   if (command.message.channel.type === 'text') await command.message.delete();
 };

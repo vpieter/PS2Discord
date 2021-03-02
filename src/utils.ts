@@ -18,7 +18,7 @@ export function getDiscordMention(id: string, type: 'user' | 'channel' = 'user')
     }
     case 'user':
     default: {
-      prefix = '#!';
+      prefix = '@!';
       break;
     }
   }
