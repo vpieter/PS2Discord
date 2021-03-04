@@ -1,10 +1,10 @@
 import { Command } from '../types';
 import { consoleCatch } from '../../../utils';
-import { ps2RestClient } from '../../../app';
+import { ps2MainOutfit, ps2RestClient } from '../../../app';
 import { MessageEmbed } from 'discord.js';
 
 export async function OnlineCommandHandler (command: Command): Promise<void> {
-  const aliasLookup = command.param || 'BJay';
+  const aliasLookup = command.param || ps2MainOutfit.alias || 'BJay';
 
   command.message.channel.startTyping();
 

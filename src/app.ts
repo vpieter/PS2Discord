@@ -1,8 +1,8 @@
 import { PS2RestClient } from './ps2-rest-client';
 import { ZoneVM, MainOutfitVM, FactionVM, CapturedFacilityVM } from './ps2-rest-client/types';
 import { Client as DiscordClient, ClientUser as DiscordClientUser, Guild } from 'discord.js';
-import { trackMainOutfitMembersOnline, trackMainOutfitBaseCaptures } from './functions';
-import { ActivityTracker, DiscordCommandListener, DiscordGreeter } from './components';
+import { trackMainOutfitBaseCaptures } from './functions';
+import { ActivityTracker, DiscordCommandListener, DiscordGreeter, MainOutfitUpdater, MembersOnlineTracker } from './components';
 import { Activities, DiscordBotToken, DiscordGuildId, KoaPort } from './consts';
 import { consoleCatch } from './utils';
 import { Op, Status } from './types';
@@ -22,9 +22,11 @@ export let ps2ControlledBases: Array<CapturedFacilityVM> = [];
 export let discordClient = new DiscordClient();
 export let discordBotUser: DiscordClientUser;
 export let discordGuild: Guild;
+export const mainOutfitUpdater = new MainOutfitUpdater();
 export const activityTracker = new ActivityTracker(discordClient);
 export const discordCommandListener = new DiscordCommandListener(discordClient);
 export const discordGreeter = new DiscordGreeter(discordClient);
+export const membersOnlineTracker = new MembersOnlineTracker(discordClient);
 
 export let runningActivities: {[key: string]: Op | Training} = {};
 
@@ -80,18 +82,19 @@ const discordReady = async () => {
   // Functions
   const PS2Init = async () => {
     // PS2RestClient
-    [ps2Factions, ps2Zones, ps2MainOutfit] = await Promise.all([
-      ps2RestClient.getFactions(),
+    ps2Factions = await ps2RestClient.getFactions();
+    [ps2Zones, ps2MainOutfit] = await Promise.all([
       ps2RestClient.getZones(),
       ps2RestClient.getMainOutfit(),
     ]);
 
     // Start PS2Discord components
+    mainOutfitUpdater.start();
     activityTracker.start();
     discordCommandListener.start();
     discordGreeter.start();
+    membersOnlineTracker.start();
     await trackMainOutfitBaseCaptures();
-    await trackMainOutfitMembersOnline();
 
     console.log(`PS2Discord running for ${ps2MainOutfit.alias}.`);
   };
