@@ -101,7 +101,7 @@ export class MembersOnlineTracker {
     await this._discordClient.user.setPresence({
       activity: {
         type: 'WATCHING',
-        name: `${ps2MainOutfit.members.filter(member => member.online).length}/${ps2MainOutfit.memberCount} BJay gays play`
+        name: `${ps2MainOutfit.members.filter(member => member.online).length}/${ps2MainOutfit.memberCount} ${ps2MainOutfit.alias} gays play`
       },
       status: 'online',
     });

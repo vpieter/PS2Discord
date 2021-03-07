@@ -1,8 +1,7 @@
 import { PS2RestClient } from './ps2-rest-client';
 import { ZoneVM, MainOutfitVM, FactionVM, CapturedFacilityVM } from './ps2-rest-client/types';
 import { Client as DiscordClient, ClientUser as DiscordClientUser, Guild } from 'discord.js';
-import { trackMainOutfitBaseCaptures } from './functions';
-import { ActivityTracker, DiscordCommandListener, DiscordGreeter, MainOutfitUpdater, MembersOnlineTracker } from './components';
+import { ActivityTracker, BaseCapturesTracker, DiscordCommandListener, DiscordGreeter, MainOutfitUpdater, MembersOnlineTracker } from './components';
 import { Activities, DiscordBotToken, DiscordGuildId, KoaPort } from './consts';
 import { consoleCatch } from './utils';
 import { Op, Status } from './types';
@@ -27,6 +26,7 @@ export const activityTracker = new ActivityTracker(discordClient);
 export const discordCommandListener = new DiscordCommandListener(discordClient);
 export const discordGreeter = new DiscordGreeter(discordClient);
 export const membersOnlineTracker = new MembersOnlineTracker(discordClient);
+export const baseCapturesTracker = new BaseCapturesTracker(discordClient);
 
 export let runningActivities: {[key: string]: Op | Training} = {};
 
@@ -79,7 +79,7 @@ const discordReady = async () => {
   if (!guild.available) throw('Guild not available.');
   discordGuild = guild;
 
-  // Functions
+  // Components
   const PS2Init = async () => {
     // PS2RestClient
     ps2Factions = await ps2RestClient.getFactions();
@@ -93,8 +93,10 @@ const discordReady = async () => {
     activityTracker.start();
     discordCommandListener.start();
     discordGreeter.start();
-    membersOnlineTracker.start();
-    await trackMainOutfitBaseCaptures();
+    await Promise.all([
+      membersOnlineTracker.start(),
+      baseCapturesTracker.start(),
+    ]);
 
     console.log(`PS2Discord running for ${ps2MainOutfit.alias}.`);
   };

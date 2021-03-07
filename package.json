@@ -6,13 +6,22 @@
     "start": "npm run _boot",
 
     "start:dev": "npm run dist:dev && concurrently --kill-others \"npm run _watch\" \"npm run _boot --prefix dist/\"",
+    "start:dev:bawc": "npm run dist:dev:bawc && concurrently --kill-others \"npm run _watch\" \"npm run _boot --prefix dist/\"",
+    "start:dev:blng": "npm run dist:dev:blng && concurrently --kill-others \"npm run _watch\" \"npm run _boot --prefix dist/\"",
+    "start:dev:t": "npm run dist:dev:t && concurrently --kill-others \"npm run _watch\" \"npm run _boot --prefix dist/\"",
     "start:prod": "npm run dist:prod && cd dist/ && npm run _boot",
 
     "dist:dev": "npm run _prepare && npm run _config:dev && npm run _build && npm run _prepublish",
+    "dist:dev:bawc": "npm run _prepare && npm run _config:dev:bawc && npm run _build && npm run _prepublish",
+    "dist:dev:blng": "npm run _prepare && npm run _config:dev:blng && npm run _build && npm run _prepublish",
+    "dist:dev:t": "npm run _prepare && npm run _config:dev:t && npm run _build && npm run _prepublish",
     "dist:prod": "npm run _prepare && npm run _config:prod && npm run _build && npm run _prepublish",
 
     "_prepare": "rm -rf dist/ && mkdir dist",
     "_config:dev": "cp ps2discord.development.json dist/ps2discord.json",
+    "_config:dev:bawc": "cp ps2discord.bawc.json dist/ps2discord.json",
+    "_config:dev:blng": "cp ps2discord.blng.json dist/ps2discord.json",
+    "_config:dev:t": "cp ps2discord.t.json dist/ps2discord.json",
     "_config:prod": "cp ps2discord.production.json dist/ps2discord.json",
     "_build": "tsc",
     "_prepublish": "cp package.json dist/ && cp package-lock.json dist/ && cp -R src/web/ dist/web/ && cp -R store/ dist/store/",
