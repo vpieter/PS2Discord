@@ -1,3 +1,3 @@
-import { Training } from "./training";
+import { TrainingTracker } from "./tracker";
 
-export default Training;
+export default TrainingTracker;

@@ -7,8 +7,8 @@
 {% set trainingRunning = training != null %}
 
 {% set opStatus = op['status'] %}
-{% set opEventCount = op['events'].length %}
-{% set opBaseCaptureCount = op['baseCaptures'].length %}
+{% set opEventCount = op['_opEvents'].length %}
+{% set opBaseCaptureCount = op['_baseCaptures'].length %}
 
 {% block styles %}
 {{ super() }}
@@ -117,7 +117,7 @@
     {% if opRunning %}
       <dl>
         <dt>Status</dt>
-        <dd>{{ Status[opStatus] }}</dd>
+        <dd>{{ opStatus }}</dd>
 
         <dt>Events tracked</dt>
         <dd>{{ opEventCount }}</dd>

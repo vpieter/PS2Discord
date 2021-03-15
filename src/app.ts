@@ -4,9 +4,9 @@ import { Client as DiscordClient, ClientUser as DiscordClientUser, Guild } from 
 import { ActivityTracker, BaseCapturesTracker, DiscordCommandListener, DiscordGreeter, MainOutfitUpdater, MembersOnlineTracker } from './components';
 import { Activities, DiscordBotToken, DiscordGuildId, KoaPort } from './consts';
 import { consoleCatch } from './utils';
-import { Op, Status } from './types';
 import { filter, map, sortBy } from 'lodash';
-import Training from './components/training';
+import TrainingTracker from './components/training';
+import OpTracker from './components/op';
 import MyKoa from './my-koa';
 
 // Global
@@ -28,12 +28,12 @@ export const discordGreeter = new DiscordGreeter(discordClient);
 export const membersOnlineTracker = new MembersOnlineTracker(discordClient);
 export const baseCapturesTracker = new BaseCapturesTracker(discordClient);
 
-export let runningActivities: {[key: string]: Op | Training} = {};
+export let runningActivities: {[key: string]: OpTracker | TrainingTracker} = {};
 
 const init = async () => {
   // koa
   koa.indexRouter.get('/', async (ctx) => {
-    ctx.body = await ctx.render('index', { title: 'index', runningActivities, Status, Activities } );
+    ctx.body = await ctx.render('index', { title: 'index', runningActivities, Activities } );
   });
   koa.indexRouter.post('/save', async (ctx) => {
     await activityTracker.activityStore.save();

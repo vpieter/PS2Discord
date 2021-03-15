@@ -4,27 +4,27 @@ import { getDiscordMention, wait } from '../../utils';
 import { Client as DiscordClient, Guild as DiscordGuild, Message, MessageEmbed, TextChannel, VoiceChannel, VoiceState } from 'discord.js';
 import { DateTime, Interval } from 'luxon';
 
-export class Training {
+export class TrainingTracker {
   private _discordClient: DiscordClient;
   private _discordGuild: DiscordGuild;
-  private _runningMessage: Message;
+  private _message: Message;
   private _voiceChannels: Array<VoiceChannel> = [];
   private _participantDiscordIds: Array<string> = [];
   private _startTime: DateTime | null = null;
-  private _endTime: DateTime | null = null;
+  private _stopTime: DateTime | null = null;
 
   get started(): boolean {
     return !!this._startTime;
   }
 
   get stopped(): boolean {
-    return !!this._startTime && !!this._endTime;
+    return !!this._startTime && !!this._stopTime;
   }
 
-  constructor(discordClient: DiscordClient, discordGuild: DiscordGuild, runningMessage: Message) {
+  constructor(discordClient: DiscordClient, discordGuild: DiscordGuild, message: Message) {
     this._discordClient = discordClient;
     this._discordGuild = discordGuild;
-    this._runningMessage = runningMessage;
+    this._message = message;
   }
 
   async start() {
@@ -44,9 +44,9 @@ export class Training {
     if (this.stopped) throw('Training has already stopped.');
 
     this._discordClient.removeListener('voiceStateUpdate', this._voiceStatusUpdateListener);
-    this._endTime = DateTime.local();
+    this._stopTime = DateTime.local();
 
-    if (this._runningMessage.deletable) await this._runningMessage.delete({ reason: 'The training has ended.' });
+    if (this._message.deletable) await this._message.delete({ reason: 'The training has ended.' });
     await reportChannel.send(this._generateReport());
     await this._removeChannels(DiscordChannelIdOpsLobby);
   }
@@ -78,13 +78,13 @@ export class Training {
   }
 
   private _generateReport = () => {
-    if (!this._startTime || !this._endTime) throw('Training has not stopped yet.');
+    if (!this._startTime || !this._stopTime) throw('Training has not stopped yet.');
 
     const participantNames = this._participantDiscordIds.length
         ? this._participantDiscordIds.map(participantId => getDiscordMention(participantId)).join(', ')
         : 'No one joined the training voice channels.';
 
-    const duration = Interval.fromDateTimes(this._startTime, this._endTime).toDuration();
+    const duration = Interval.fromDateTimes(this._startTime, this._stopTime).toDuration();
     const reportEmbed = new MessageEmbed()
       .setTitle(`[${ps2MainOutfit.alias}] ${ps2MainOutfit.name} training report.`)
       .addField(`${this._participantDiscordIds.length} Participants:`, participantNames, false)

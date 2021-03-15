@@ -2,7 +2,7 @@ import { Command } from '../types';
 import { discordClient, discordGuild, runningActivities } from '../../../app';
 import { Activities, DiscordChannelIdMentoring, DiscordRoleIdLeader, DiscordRoleIdOfficer, DiscordRoleIdSpecialist } from '../../../consts';
 import { TextChannel } from 'discord.js';
-import Training from '../../training';
+import TrainingTracker from '../../training';
 
 export async function TrainingCommandHandler (command: Command): Promise<void> {
   const channel = await discordClient.channels.fetch(DiscordChannelIdMentoring);
@@ -23,7 +23,7 @@ export async function TrainingCommandHandler (command: Command): Promise<void> {
   }
 
   // TrainingCommandHandler
-  const runningTraining = runningActivities[Activities.Training] as Training;
+  const runningTraining = runningActivities[Activities.Training] as TrainingTracker;
   if (command.param === 'stop') {
     if (!runningTraining) {
       await command.message.channel.send('A training is not yet running. Send "training" command to start.');
@@ -44,7 +44,7 @@ export async function TrainingCommandHandler (command: Command): Promise<void> {
   //////////////
 
   const runningMessage = await (channel as TextChannel).send('Started a training. Send "training stop" command to stop.');
-  const training = new Training(discordClient, discordGuild, runningMessage);
+  const training = new TrainingTracker(discordClient, discordGuild, runningMessage);
   training.start();
 
   runningActivities[Activities.Training] = training;

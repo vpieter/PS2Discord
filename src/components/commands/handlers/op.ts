@@ -1,9 +1,8 @@
 import { Command } from '../types';
-import { Op, Status } from '../../../types';
-import { trackMainOutfitOp } from '../../../functions';
-import { discordGuild, runningActivities, discordClient, ps2MainOutfit, discordBotUser } from '../../../app';
+import { discordGuild, runningActivities, discordClient, ps2MainOutfit } from '../../../app';
 import { Activities, DiscordChannelIdOps, DiscordRoleIdLeader, DiscordRoleIdMember, DiscordRoleIdOfficer, DiscordRoleIdSpecialist } from '../../../consts';
 import { TextChannel } from 'discord.js';
+import OpTracker from '../../op';
 
 enum SubCommand {
   'Open' = 'open',
@@ -48,29 +47,29 @@ export async function OpCommandHandler (command: Command): Promise<void> {
   }
 
   // OpCommandHandler
-  let runningOp = runningActivities[Activities.Op] as Op;
+  let runningOp = runningActivities[Activities.Op] as OpTracker;
 
   switch(command.param) {
     case SubCommand.Open: {
       if (command.message.channel.type === 'text') await command.message.delete();
 
       // Open
-      runningOp = runningActivities[Activities.Op] = await trackMainOutfitOp(channel);
-      await runningOp.open(runningOp);
+      runningOp = runningActivities[Activities.Op] = new OpTracker(discordClient, discordGuild);
+      await runningOp.start();
 
       break;
     }
     case SubCommand.Start: {
       if (!runningOp) {
         // implicit open
-        runningOp = runningActivities[Activities.Op] = await trackMainOutfitOp(channel);
-        await runningOp.open(runningOp);
+        runningOp = runningActivities[Activities.Op] = new OpTracker(discordClient, discordGuild);
+        await runningOp.start();
       }
 
       if (command.message.channel.type === 'text') await command.message.delete();
 
       // Start
-      await runningOp.start(runningOp);
+      await runningOp.startTracking();
 
       break;
     }
@@ -81,7 +80,7 @@ export async function OpCommandHandler (command: Command): Promise<void> {
         if (command.message.channel.type === 'text') await command.message.delete();
 
         // Stop
-        await runningOp.stop(runningOp);
+        await runningOp.stopTracking();
       }
 
       break;
@@ -92,13 +91,8 @@ export async function OpCommandHandler (command: Command): Promise<void> {
       } else {
         if (command.message.channel.type === 'text') await command.message.delete();
 
-        // Stop before close, if started
-        if (runningOp.status === Status.Started) {
-          await runningOp.stop(runningOp);
-        }
-
         // Close
-        await runningOp.close(runningOp);
+        await runningOp.stop();
 
         // Delete from running
         delete runningActivities[Activities.Op];
@@ -120,15 +114,10 @@ export async function OpCommandHandler (command: Command): Promise<void> {
 
           // only members have been tracked and can apply
           if (member) {
-            const soloReportUser = { user: command.message.author, characterId: member.id };
-
-            // sign up when started. send when stopped.
-            if (runningOp.status <= Status.Started) {
-              runningOp.soloReports.push(soloReportUser);
+            if (!runningOp.stoppedTracking) {
               await command.message.channel.send(`You'll receive a solo op report for '${command.param}' when the current op ends.`);
-            } else {
-              await runningOp.sendSoloReport(soloReportUser)
             }
+            await runningOp.addSoloOpReport(command.message.author, member.id);
           } else {
             await command.message.channel.send(`Cannot find member '${command.param}'.`);
           }

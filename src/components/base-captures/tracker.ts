@@ -5,9 +5,9 @@ import { Activities, DiscordChannelIdFacility } from '../../consts';
 import { FacilityVM } from '../../ps2-rest-client/types';
 import { PS2StreamingClient } from '../../ps2-streaming-client';
 import { PS2StreamingEvent } from '../../ps2-streaming-client/consts';
-import { ContinentLockDTO, FacilityControlDTO, PlayerFacilityDto, PlayerLogDTO, PS2StreamingEventListenerFn, PS2StreamingLookup } from '../../ps2-streaming-client/types';
-import { Op, Status } from '../../types';
+import { ContinentLockDTO, FacilityControlDTO, PlayerFacilityDto, PS2StreamingLookup } from '../../ps2-streaming-client/types';
 import { consoleCatch, wait } from '../../utils';
+import OpTracker from '../op';
 
 export class BaseCapturesTracker {
   private _started: boolean = false;
@@ -16,6 +16,7 @@ export class BaseCapturesTracker {
   private _ps2StreamingClientCharacters: PS2StreamingClient | null = null;
   private _discordClient: DiscordClient;
   private _ps2ControlledBaseMessages: Record<string, Message> = {};
+  private _resetListenersInterval: NodeJS.Timeout | null = null;
 
   get ready(): Promise<this> {
     if (this._ps2StreamingClientWorld !== null && this._ps2StreamingClientCharacters) return new Promise(resolve => resolve(this));
@@ -49,14 +50,17 @@ export class BaseCapturesTracker {
 
     await this._output();
     await this._startListeners();
-    setInterval(this._resetListeners, 1000 * 60 * 30);
+    this._resetListenersInterval = setInterval(this._resetListeners, 1000 * 60 * 30);
 
     this._started = true;
   }
 
   async stop() {
     if (!this.started) return;
+    if (!this._resetListenersInterval) throw('Unexpected base-captures _resetListenersInterval null.');
 
+    clearInterval(this._resetListenersInterval);
+    this._resetListenersInterval = null;
     await this._stopListeners();
     this._started = false;
   }
@@ -80,10 +84,8 @@ export class BaseCapturesTracker {
     const contributors: Array<string> = [];
     ps2ControlledBases.push({...facility, contributors});
 
-    const runningOp = runningActivities[Activities.Op] as Op;
-    if (runningOp && runningOp.status === Status.Started) {
-      runningOp.baseCaptures.push(facility);
-    }
+    const runningOp = runningActivities[Activities.Op] as OpTracker;
+    if (runningOp) await runningOp.addBaseCapture(facility);
 
     const message = await this._sendBaseCaptureMessage(facility).catch(consoleCatch);
     if (!message) return;
