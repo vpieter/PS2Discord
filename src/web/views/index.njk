@@ -7,8 +7,15 @@
 {% set trainingRunning = training != null %}
 
 {% set opStatus = op['status'] %}
+{% set opStartTime = op['_startTime'] %}
+{% set opStartTrackingTime = op['_startTrackingTime'] %}
+{% set opStopTrackingTime = op['_stopTrackingTime'] %}
 {% set opEventCount = op['_opEvents'].length %}
 {% set opBaseCaptureCount = op['_baseCaptures'].length %}
+
+{% set trainingStatus = training['status'] %}
+{% set trainingStartTime = training['_startTime'] %}
+{% set trainingParticipantCount = training['_participantDiscordIds'].length %}
 
 {% block styles %}
 {{ super() }}
@@ -60,6 +67,7 @@
     width: 100%;
   }
   .runningActivities div dt {
+    margin-bottom: 6px;
     padding-left: 8px;
     text-align: left;
   }
@@ -119,6 +127,15 @@
         <dt>Status</dt>
         <dd>{{ opStatus }}</dd>
 
+        <dt>Open time</dt>
+        <dd>{{ opStartTime }}</dd>
+
+        <dt>Start time</dt>
+        <dd>{{ opStartTrackingTime }}</dd>
+
+        <dt>Stop time</dt>
+        <dd>{{ opStopTrackingTime }}</dd>
+
         <dt>Events tracked</dt>
         <dd>{{ opEventCount }}</dd>
 
@@ -135,6 +152,18 @@
         No training in progress
       {% endif %}
     </h2>
+    {% if trainingRunning %}
+      <dl>
+        <dt>Status</dt>
+        <dd>{{ trainingStatus }}</dd>
+
+        <dt>Start time</dt>
+        <dd>{{ trainingStartTime }}</dd>
+
+        <dt>Participants</dt>
+        <dd>{{ trainingParticipantCount }}</dd>
+      </dl>
+    {% endif %}
   </div>
 </section>
 

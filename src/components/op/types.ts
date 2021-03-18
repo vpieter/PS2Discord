@@ -10,11 +10,3 @@ export type LeaderboardEntry = {
   rank: number,
   member: OutfitMemberVM,
 };
-
-export enum Status {
-  'Planned' = 1,
-  'Opened' = 2,
-  'Started' = 3,
-  'Stopped' = 4,
-  'Closed' = 5,
-};

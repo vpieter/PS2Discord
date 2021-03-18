@@ -4,6 +4,12 @@ import { getDiscordMention, wait } from '../../utils';
 import { Client as DiscordClient, Guild as DiscordGuild, Message, MessageEmbed, TextChannel, VoiceChannel, VoiceState } from 'discord.js';
 import { DateTime, Interval } from 'luxon';
 
+enum Status {
+  'Ready',
+  'Started',
+  'Stopped',
+};
+
 export class TrainingTracker {
   private _discordClient: DiscordClient;
   private _discordGuild: DiscordGuild;
@@ -19,6 +25,16 @@ export class TrainingTracker {
 
   get stopped(): boolean {
     return !!this._startTime && !!this._stopTime;
+  }
+
+  get status(): string {
+    return Object.values(Status)[this.statusKey] as string;
+  }
+
+  private get statusKey(): number {
+    if (!this.started) return Status.Ready;
+    if (this.started && !this.stopped) return Status.Started
+    return Status.Stopped;
   }
 
   constructor(discordClient: DiscordClient, discordGuild: DiscordGuild, message: Message) {

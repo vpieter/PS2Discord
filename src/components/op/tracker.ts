@@ -63,7 +63,11 @@ export class OpTracker {
     return !!this._stopTrackingTime;
   }
 
-  get status(): Status {
+  get status(): string {
+    return Object.values(Status)[this.statusKey] as string;
+  }
+
+  private get statusKey(): number {
     if (this._ps2StreamingClientCharacters === null) return Status.NotReady;
     if (this.started && !this.startedTracking) return Status.Opened;
     if (this.startedTracking && !this.stoppedTracking) return Status.Started;
