@@ -2,7 +2,7 @@ import { Command } from '../types';
 import { discordGuild, runningActivities, discordClient, ps2MainOutfit } from '../../../app';
 import { Activities, DiscordChannelIdOps, DiscordRoleIdLeader, DiscordRoleIdMember, DiscordRoleIdOfficer, DiscordRoleIdSpecialist } from '../../../consts';
 import { TextChannel } from 'discord.js';
-import OpTracker from '../../op';
+import { OpTracker } from '../..';
 
 enum SubCommand {
   'Open' = 'open',

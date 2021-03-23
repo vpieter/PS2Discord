@@ -2,7 +2,7 @@ import { Command } from '../types';
 import { discordClient, discordGuild, runningActivities } from '../../../app';
 import { Activities, DiscordChannelIdMentoring, DiscordRoleIdLeader, DiscordRoleIdOfficer, DiscordRoleIdSpecialist } from '../../../consts';
 import { TextChannel } from 'discord.js';
-import TrainingTracker from '../../training';
+import { TrainingTracker } from '../..';
 
 export async function TrainingCommandHandler (command: Command): Promise<void> {
   const channel = await discordClient.channels.fetch(DiscordChannelIdMentoring);

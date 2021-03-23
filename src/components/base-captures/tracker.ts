@@ -1,5 +1,6 @@
 import { Client as DiscordClient, Message, MessageEmbed, TextChannel } from 'discord.js';
 import { debounce, remove, some } from 'lodash';
+import { OpTracker } from '..';
 import { ps2ControlledBases, ps2MainOutfit, ps2RestClient, runningActivities } from '../../app';
 import { Activities, DiscordChannelIdFacility } from '../../consts';
 import { FacilityVM } from '../../ps2-rest-client/types';
@@ -7,7 +8,6 @@ import { PS2StreamingClient } from '../../ps2-streaming-client';
 import { PS2StreamingEvent } from '../../ps2-streaming-client/consts';
 import { ContinentLockDTO, FacilityControlDTO, PlayerFacilityDto, PS2StreamingLookup } from '../../ps2-streaming-client/types';
 import { consoleCatch, wait } from '../../utils';
-import OpTracker from '../op';
 
 export class BaseCapturesTracker {
   private _started: boolean = false;
