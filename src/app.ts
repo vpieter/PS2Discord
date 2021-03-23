@@ -1,6 +1,6 @@
 import { PS2RestClient } from './ps2-rest-client';
 import { ZoneVM, MainOutfitVM, FactionVM, CapturedFacilityVM } from './ps2-rest-client/types';
-import { Client as DiscordClient, ClientUser as DiscordClientUser, Guild } from 'discord.js';
+import { Client as DiscordClient, ClientUser as DiscordClientUser, Guild as DiscordGuild } from 'discord.js';
 import { ActivityTracker, BaseCapturesTracker, DiscordCommandListener, DiscordGreeter, MainOutfitUpdater, MembersOnlineTracker, OpTracker, TrainingTracker } from './components';
 import { Activities, DiscordBotToken, DiscordGuildId, KoaPort } from './consts';
 import { consoleCatch } from './utils';
@@ -8,8 +8,6 @@ import { filter, map, sortBy } from 'lodash';
 import MyKoa from './my-koa';
 
 // Global
-export const koa = new MyKoa(KoaPort);
-
 export const ps2RestClient = PS2RestClient.getInstance();
 export let ps2Factions: Array<FactionVM> = [];
 export let ps2Zones: Array<ZoneVM> = [];
@@ -18,7 +16,8 @@ export let ps2ControlledBases: Array<CapturedFacilityVM> = [];
 
 export let discordClient = new DiscordClient();
 export let discordBotUser: DiscordClientUser;
-export let discordGuild: Guild;
+export let discordGuild: DiscordGuild;
+export let koa: MyKoa;
 export const mainOutfitUpdater = new MainOutfitUpdater();
 export const activityTracker = new ActivityTracker(discordClient);
 export const discordCommandListener = new DiscordCommandListener(discordClient);
@@ -29,9 +28,32 @@ export const baseCapturesTracker = new BaseCapturesTracker(discordClient);
 export let runningActivities: {[key: string]: OpTracker | TrainingTracker} = {};
 
 const init = async () => {
-  // koa
+  // Discord
+  discordClient.once('ready', discordReady);
+  discordClient.on('error', consoleCatch);
+  discordClient.on('rateLimit', consoleCatch);
+
+  await discordClient.login(DiscordBotToken);
+};
+
+const discordReady = async () => {
+  if (!discordClient.user || !discordClient.user.bot) throw('Discord bot user not found.');
+  discordBotUser = discordClient.user;
+
+  const guild = discordClient.guilds.resolve(DiscordGuildId);
+  if (!guild) throw('Guild not found.');
+  if (!guild.available) throw('Guild not available.');
+  discordGuild = guild;
+
+  // Koa
+  koa = new MyKoa(KoaPort, discordGuild);
   koa.indexRouter.get('/', async (ctx) => {
-    ctx.body = await ctx.render('index', { title: 'index', runningActivities, Activities } );
+    ctx.body = await ctx.render('index', {
+      title: 'index',
+      runningActivities,
+      Activities,
+      isPotterV: (ctx.session?.grant?.response?.profile?.id === '101347311627534336'),
+    });
   });
   koa.indexRouter.post('/save', async (ctx) => {
     await activityTracker.activityStore.save();
@@ -57,25 +79,10 @@ const init = async () => {
   koa.debugExpose('ps2ControlledBases', async () => ps2ControlledBases);
   koa.debugExpose('runningActivities', async () => runningActivities);
   koa.debugExpose('trackedDiscordUsers', async () => activityTracker.activityStore.value());
+  
+  koa.publicExpose('grant', async (ctx) => ctx.session?.grant);
 
   koa.init();
-
-  // Discord
-  discordClient.once('ready', discordReady);
-  discordClient.on('error', consoleCatch);
-  discordClient.on('rateLimit', consoleCatch);
-
-  await discordClient.login(DiscordBotToken);
-};
-
-const discordReady = async () => {
-  if (!discordClient.user || !discordClient.user.bot) throw('Discord bot user not found.');
-  discordBotUser = discordClient.user;
-
-  const guild = discordClient.guilds.resolve(DiscordGuildId);
-  if (!guild) throw('Guild not found.');
-  if (!guild.available) throw('Guild not available.');
-  discordGuild = guild;
 
   // Components
   const PS2Init = async () => {

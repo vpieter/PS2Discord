@@ -19,6 +19,8 @@ export enum Activities {
 };
 
 export const DiscordBotToken = config.discordBot.token;
+export const DiscordBotAppClient = config.discordBot.appClient;
+export const DiscordBotAppSecret = config.discordBot.appSecret;
 export const DiscordGuildId = config.discordGuild.guildId;
 export const DiscordChannelIdRules = config.discordGuild.channelIdRules;
 export const DiscordChannelIdWelcome = config.discordGuild.channelIdWelcome;
@@ -33,4 +35,6 @@ export const DiscordRoleIdOfficer = config.discordGuild.roleIdOfficer;
 export const DiscordRoleIdSpecialist = config.discordGuild.roleIdSpecialist;
 export const DiscordRoleIdMember = config.discordGuild.roleIdMember;
 
+export const KoaHost = config.koa.host;
 export const KoaPort = config.koa.port;
+export const KoaCookieKeys = config.koa.cookieKeys;

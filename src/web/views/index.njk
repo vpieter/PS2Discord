@@ -167,6 +167,7 @@
   </div>
 </section>
 
+{% if isPotterV %}
 <section class="adminActions">
   <form action="save" method="post">
     <input type="submit" value="trigger manual store save" />
@@ -187,4 +188,5 @@
     </form>
   #}
 </section>
+{% endif %}
 {% endblock body %}

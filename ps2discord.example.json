@@ -1,6 +1,8 @@
 {
   "discordBot": {
-    "token": "token-here"
+    "token": "token-here",
+    "appClient": "app-client-id-here",
+    "appSecret": "app-client-secret-here"
   },
   "discordGuild": {
     "guildId": "guild-id-here",
@@ -23,6 +25,10 @@
     "outfitId": "outfit-id-here"
   },
   "koa": {
-    "port": 80
+    "host": "http://host-here",
+    "port": 80,
+    "cookieKeys": [
+      "koa-keys-to-encode-signed-cookies-here"
+    ]
   }
 }
