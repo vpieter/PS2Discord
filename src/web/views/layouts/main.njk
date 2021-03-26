@@ -110,16 +110,16 @@
 </head>
 <body>
 {% block body %}
-<header>
-  <h1>BJayBot</h1>
-  <h2>beep booping your mom</h2>
-</header>
-<nav>
-  {% set nav_items = { 'index': '/', 'activity': '/activity/' } %}
-  {% for nav_item, url in nav_items %}
-    <a {% if nav_item != title %}href="{{ url }}"{% endif %} class="{% if nav_item == title %}active{% endif %}">{{ nav_item | capitalize }}</a>
-  {% endfor %}
-</nav>
+  <header>
+    <h1>BJayBot</h1>
+    <h2>beep booping your mom</h2>
+  </header>
+  <nav>
+    {% set nav_items = { 'index': '/', 'activity': '/activity/', 'profile': '/public/profile' } %}
+    {% for nav_item, url in nav_items %}
+      <a {% if title != nav_item %}href="{{ url }}"{% endif %} class="{% if title == nav_item %}active{% endif %}">{{ nav_item | capitalize }}</a>
+    {% endfor %}
+  </nav>
 {% endblock body %}
 {% block scripts %}{% endblock scripts %}
 </body>

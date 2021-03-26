@@ -52,12 +52,12 @@ const discordReady = async () => {
       title: 'index',
       runningActivities,
       Activities,
-      isPotterV: (ctx.session?.grant?.response?.profile?.id === '101347311627534336'),
+      user: ctx.state.user,
     });
   });
-  koa.indexRouter.post('/save', async (ctx) => {
+  koa.indexRouter.use('/save', koa.devMiddleware).post('/save', async (ctx) => {
     await activityTracker.activityStore.save();
-    ctx.redirect('/');
+    ctx.redirect(ctx.origin);
   });
 
   koa.expose('activity', async () => {
@@ -80,7 +80,7 @@ const discordReady = async () => {
   koa.debugExpose('runningActivities', async () => runningActivities);
   koa.debugExpose('trackedDiscordUsers', async () => activityTracker.activityStore.value());
   
-  koa.publicExpose('grant', async (ctx) => ctx.session?.grant);
+  koa.publicExpose('profile', async (ctx) => ctx.session?.grant?.response?.profile ?? {});
 
   koa.init();
 

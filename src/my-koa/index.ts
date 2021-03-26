@@ -6,7 +6,17 @@ import koaCompress from 'koa-compress';
 import path from 'path';
 import Grant from 'grant-koa';
 import { Guild as DiscordGuild } from 'discord.js';
-import { DiscordBotAppClient, DiscordBotAppSecret, DiscordRoleIdLeader, DiscordRoleIdOfficer, DiscordRoleIdSpecialist, KoaCookieKeys, KoaHost, KoaPort } from '../consts';
+import { DiscordBotAppClient, DiscordBotAppSecret, DiscordRoleIdLeader, DiscordRoleIdMember, DiscordRoleIdOfficer, DiscordRoleIdSpecialist, KoaCookieKeys, KoaHost, KoaPort } from '../consts';
+
+export type MyKoaUser = {
+  name: string | null;
+  color: string | null;
+
+  isDev: boolean;
+  isStaff: boolean;
+  isMember: boolean;
+  isConnected: boolean;
+}
 
 export class MyKoaRouter extends KoaRouter<Koa.DefaultState, Koa.Context> {
   constructor(opt?: KoaRouter.IRouterOptions) {
@@ -29,6 +39,7 @@ export class MyKoaRouter extends KoaRouter<Koa.DefaultState, Koa.Context> {
 
 export default class MyKoa extends Koa {
   listenPort:number;
+  discordGuild: DiscordGuild;
 
   indexRouter: MyKoaRouter;
   debugRouter: MyKoaRouter;
@@ -38,6 +49,7 @@ export default class MyKoa extends Koa {
     super();
 
     this.listenPort = listenPort;
+    this.discordGuild = discordGuild;
 
     // Use session middleware
     this.keys = KoaCookieKeys; // .keys required for signed cookies (used by session)
@@ -55,28 +67,7 @@ export default class MyKoa extends Koa {
       },
     }));
 
-    const staffMiddleware = async (ctx: Koa.ParameterizedContext<Koa.DefaultState, Koa.DefaultContext>, next: Koa.Next) => {
-      const discordUserId = ctx.session?.grant?.response?.profile?.id;
-      if (discordUserId) {
-        // Permission
-        const leaderRole = await discordGuild.roles.fetch(DiscordRoleIdLeader);
-        const officerRole = await discordGuild.roles.fetch(DiscordRoleIdOfficer);
-        const specialistRole = await discordGuild.roles.fetch(DiscordRoleIdSpecialist);
-        if (discordUserId !== '101347311627534336' && // potterv override
-          !leaderRole?.members.find(member => member.id === discordUserId) &&
-          !officerRole?.members.find(member => member.id === discordUserId) &&
-          !specialistRole?.members.find(member => member.id === discordUserId)
-        ) {
-          ctx.redirect('/public/unauthorized');
-          return;
-        }
-      } else {
-        ctx.redirect('/connect/discord');
-        return;
-      }
-
-      await next();
-    };
+    this.use(this.userMiddleware);
 
     // Use gzip middleware
     this.use(koaCompress());
@@ -88,12 +79,12 @@ export default class MyKoa extends Koa {
 
     // Use index route middleware
     this.indexRouter = new MyKoaRouter();
-    this.indexRouter.use(staffMiddleware);
+    this.indexRouter.use(this.staffMiddleware);
     this.use(this.indexRouter.routes()).use(this.indexRouter.allowedMethods());
 
     // Use debug route middleware
     this.debugRouter = new MyKoaRouter({ prefix: '/debug', methods: ['GET'] });
-    this.debugRouter.use(staffMiddleware);
+    this.debugRouter.use(this.devMiddleware);
     this.use(this.debugRouter.routes()).use(this.debugRouter.allowedMethods());
 
     // Use public route middleware
@@ -126,4 +117,56 @@ export default class MyKoa extends Koa {
       ctx.body = await ctx.render('expose', { json: JSON.stringify(await obj(ctx), null, 2), title: name } );
     });
   }
+
+  devMiddleware = async (ctx: Koa.ParameterizedContext<Koa.DefaultState, Koa.DefaultContext>, next: Koa.Next) => {
+    if (!ctx.state.user.isConnected) return ctx.redirect('/connect/discord');
+    else if (!ctx.state.user.isDev) return ctx.redirect('/public/unauthorized');
+    await next();
+  };
+
+  staffMiddleware = async (ctx: Koa.ParameterizedContext<Koa.DefaultState, Koa.DefaultContext>, next: Koa.Next) => {
+    if (!ctx.state.user.isConnected) return ctx.redirect('/connect/discord');
+    else if (!ctx.state.user.isStaff) return ctx.redirect('/public/unauthorized');
+    await next();
+  };
+
+  memberMiddleware = async (ctx: Koa.ParameterizedContext<Koa.DefaultState, Koa.DefaultContext>, next: Koa.Next) => {
+    if (!ctx.state.user.isConnected) return ctx.redirect('/connect/discord');
+    else if (!ctx.state.user.isMember) return ctx.redirect('/public/unauthorized');
+    await next();
+  };
+
+  connectedMiddleware = async (ctx: Koa.ParameterizedContext<Koa.DefaultState, Koa.DefaultContext>, next: Koa.Next) => {
+    if (!ctx.state.user.isConnected) return ctx.redirect('/public/unauthorized');
+    await next();
+  };
+
+  private userMiddleware = async (ctx: Koa.ParameterizedContext<Koa.DefaultState, Koa.DefaultContext>, next: Koa.Next) => {
+    const user: MyKoaUser = {
+      name: null,
+      color: null,
+
+      isDev: false,
+      isStaff: false,
+      isMember: false,
+      isConnected: false,
+    };
+
+    const staffRoleIds = [DiscordRoleIdLeader, DiscordRoleIdOfficer, DiscordRoleIdSpecialist];
+    const discordUserId = ctx.session?.grant?.response?.profile?.id;
+    if (discordUserId)  {
+      const guildMember = await this.discordGuild.members.fetch(discordUserId);
+
+      user.name = guildMember.nickname;
+      user.color = guildMember.displayHexColor;
+
+      user.isDev = guildMember.id === '101347311627534336';
+      user.isStaff = guildMember.roles.cache.some(r => staffRoleIds.includes(r.id));
+      user.isMember = guildMember.roles.cache.has(DiscordRoleIdMember);
+      user.isConnected = true;
+    }
+
+    ctx.state.user = user;
+    await next();
+  };
 }
