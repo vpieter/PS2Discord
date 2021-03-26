@@ -29,6 +29,7 @@ export const DiscordChannelIdFacility = config.discordGuild.channelIdFacility;
 export const DiscordCategoryIdOps = config.discordGuild.categoryIdOps;
 export const DiscordChannelIdOpsLobby = config.discordGuild.channelIdOpsLobby;
 export const DiscordChannelIdOps = config.discordGuild.channelIdOps;
+export const DiscordChannelIdOpsDebrief = config.discordGuild.channelIdOpsDebrief;
 export const DiscordChannelIdMentoring = config.discordGuild.channelIdMentoring;
 export const DiscordRoleIdLeader = config.discordGuild.roleIdLeader;
 export const DiscordRoleIdOfficer = config.discordGuild.roleIdOfficer;

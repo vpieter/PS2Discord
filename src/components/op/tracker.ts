@@ -1,5 +1,5 @@
 import { discordBotUser, ps2MainOutfit, ps2RestClient, ps2Zones } from '../../app';
-import { DiscordCategoryIdOps, DiscordChannelIdOpsLobby, DiscordChannelIdOps } from '../../consts';
+import { DiscordCategoryIdOps, DiscordChannelIdOpsLobby, DiscordChannelIdOps, DiscordChannelIdOpsDebrief } from '../../consts';
 import { getDiscordMention, wait } from '../../utils';
 import { Client as DiscordClient, Guild as DiscordGuild, Message, MessageEmbed, TextChannel, User, VoiceChannel } from 'discord.js';
 import { DateTime, Interval } from 'luxon';
@@ -25,6 +25,7 @@ export class OpTracker {
   private _discordGuild: DiscordGuild;
   private _message: Message | null = null;
   private _channel: TextChannel | null = null;
+  private _debriefChannel: TextChannel | null = null;
   private _voiceChannels: Array<VoiceChannel> = [];
   private _soloReports: Array<{ user: User, characterId: string }> = [];
   private _opEvents: Array<GainExperienceDto | DeathDto> = [];
@@ -86,6 +87,11 @@ export class OpTracker {
         this._channel = channel as TextChannel;
         return this._channel;
       }),
+      discordClient.channels.fetch(DiscordChannelIdOpsDebrief).then(channel => {
+        if (channel.type !== 'text') throw('Ops debrief channel should be a text channel.');
+        this._debriefChannel = channel as TextChannel;
+        return this._debriefChannel;
+      }),
     ]).then(() => this);
     this._eventProcessingQueue = new PQueue({ concurrency: 1 });
     this._discordGuild = discordGuild;
@@ -143,9 +149,36 @@ export class OpTracker {
     await this._eventProcessingQueue.onEmpty().then(() => this._eventProcessingQueue.pause());
 
     await this._sendOverviewReport();
+    await this.startDebrief();
+
     this._soloReports.forEach(async soloReport => {
       this._sendSoloOpReport(soloReport);
     });
+  }
+
+  async startDebrief() {
+    if (!this.stoppedTracking) throw('Op has not stopped tracking yet.');
+
+    if (!this._debriefChannel) throw('Unexpected op _debriefChannel null.');
+    if (!this._overviewMessage) throw('Unexpected op _overviewMessage null.');
+
+    const date = new Date();
+    const dayName = Intl.DateTimeFormat('en-GB', {weekday: 'long'}).format(date);
+    const dateString = Intl.DateTimeFormat('en-GB').format(date);
+
+    const descriptionText = `Start your debrief comments with your squad and SL's name.`
+    + `\nPlease keep it to one message per person.`;
+
+    const exampleText = `[Alpha] SL: KIZZZZ`
+    + `\nKIZZZZ best SL no one even close.`;
+
+    const embed = new MessageEmbed()
+      .setTitle(`Debrief: ${dayName} ${dateString} Op`)
+      .setURL(this._overviewMessage.url)
+      .setDescription(descriptionText)
+      .addField(`Example`, exampleText);
+
+    await this._debriefChannel.send(embed);
   }
 
   async stop() {
