@@ -53,6 +53,11 @@ export async function OpCommandHandler (command: Command): Promise<void> {
     case SubCommand.Open: {
       if (command.message.channel.type === 'text') await command.message.delete();
 
+      if (runningOp) {
+        await command.message.channel.send('An op is already running. Send "op close" command to make room for a new op.');
+        return;
+      }
+
       // Open
       runningOp = runningActivities[Activities.Op] = new OpTracker(discordClient, discordGuild);
       await runningOp.start();

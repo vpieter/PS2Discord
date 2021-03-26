@@ -124,6 +124,7 @@ export class OpTracker {
     if (!this.started) await this.ready.then(() => this.start());
 
     if (!this._channel) throw('Unexpected op _channel null');
+    if (this.startedTracking) throw('Op has already started tracking.');
 
     this._startTrackingTime = DateTime.local();
     await this._startListeners();
@@ -173,7 +174,7 @@ export class OpTracker {
     + `\nKIZZZZ best SL no one even close.`;
 
     const embed = new MessageEmbed()
-      .setTitle(`Debrief: ${dayName} ${dateString} Op`)
+      .setTitle(`Debrief: ${dayName} ${dateString} op`)
       .setURL(this._overviewMessage.url)
       .setDescription(descriptionText)
       .addField(`Example`, exampleText);
