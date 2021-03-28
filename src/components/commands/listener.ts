@@ -7,11 +7,16 @@ import XRegExp from 'xregexp';
 
 export class DiscordCommandListener {
   private _started: boolean = false;
+  private _stopped: boolean = false;
   private _discordClient: DiscordClient;
   private _commands: string[];
 
   get started(): boolean {
     return this._started;
+  }
+
+  get stopped(): boolean {
+    return this._stopped;
   }
 
   constructor(discordClient: DiscordClient) {
@@ -25,27 +30,38 @@ export class DiscordCommandListener {
     this._started = true;
   }
 
+  handle(command: Command) {
+    if (!this.started) throw('DiscordCommandListener has not started yet.');
+    if (this.stopped) throw('DiscordCommandListener has already stopped.');
+
+    const handler = CommandHandlers[command.commandName];
+    if (isFunction(handler)) handler(command);
+  }
+
   stop() {
+    if (!this.started) throw('DiscordCommandListener has not yet started.');
+
     this._discordClient.removeListener('message', this._messageListener);
-    this._started = false;
+    this._stopped = true;
   }
 
   // private methods
-  private _messageListener = (message: Message) => {
+  private _messageListener = (discordMessage: Message) => {
     if (this._discordClient.user === null) return;
 
     // TODO: Param is limited to [A-Za-z0-9]
     const regexString = `^(?:(?:(?<mention><@!${this._discordClient.user.id}>)\\s*!?)|!?)(?<commandName>${this._commands.join('|')})\\s*(?<param>[A-Za-z0-9]+)?\\s*$`;
     const regex = XRegExp(regexString, 'i');
-    const result = XRegExp.exec(message.content, regex);
+    const result = XRegExp.exec(discordMessage.content, regex);
     if (result === null) return;
 
     const { mention=null, commandName=null, param=null } = result;
-    if (message.channel.type !== 'dm' && mention === null) return;
+    if (discordMessage.channel.type !== 'dm' && mention === null) return;
     if (commandName === null) return;
 
-    const command: Command = { mention, commandName, param, message };
-    const handler = CommandHandlers[command.commandName];
-    if (isFunction(handler)) handler(command);
+    const discordAuthorId = discordMessage.author.id;
+
+    const command: Command = { discordAuthorId, commandName, param, discordMessage };
+    this.handle(command);
   };
 };

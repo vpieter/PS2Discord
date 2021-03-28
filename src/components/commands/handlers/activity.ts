@@ -6,6 +6,8 @@ import { activityTracker, ps2MainOutfit } from '../../../app';
 import { getDiscordMention } from '../../../utils';
 
 export async function ActivityCommandHandler (command: Command): Promise<void> {
+  if (!command.discordMessage) throw('Unexpected ActivityCommandHandler command.discordMessage null');
+
   const trackedMembers = filter(activityTracker.activityStore.value(), user => user.member);
   const activeMembers = filter(trackedMembers, member => member.voiceHistory.length > 0);
 
@@ -22,6 +24,6 @@ export async function ActivityCommandHandler (command: Command): Promise<void> {
     .setTitle(`${ps2MainOutfit.alias} member activity`)
     .addField(`${activity.length} Active members:`, activityString, false);
 
-  await command.message.channel.send(activityEmbed);
+  await command.discordMessage.channel.send(activityEmbed);
   return Promise.resolve();
 };

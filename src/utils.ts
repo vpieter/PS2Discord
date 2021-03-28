@@ -1,3 +1,4 @@
+import { GrantResponse } from 'grant';
 import jsonfile from 'jsonfile';
 
 export function voidCatch(reason: any) {
@@ -36,3 +37,5 @@ export async function loadStore<T>(target: T, name: string, mapper?: (raw: T) =>
   }
   Object.assign(target, temp as T);
 };
+
+export type Modify<T, R> = Omit<T, keyof R> & R;

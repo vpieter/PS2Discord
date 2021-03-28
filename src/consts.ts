@@ -3,16 +3,6 @@ const config = require('../ps2discord.json');
 export const PS2ApiToken = config.ps2.apiToken;
 export const PS2MainOutfitId = config.ps2.outfitId;
 
-export enum Commands {
-  'Help' = 'help',
-  'Members' = 'members',
-  'Online' = 'online',
-  'Bases' = 'bases',
-  'Op' = 'op',
-  'Training' = 'training',
-  // 'Activity' = 'activity',
-};
-
 export enum Activities {
   'Op' = 'op',
   'Training' = 'training',

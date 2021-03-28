@@ -54,7 +54,13 @@
     text-transform: uppercase;
     font-weight: bold;
   }
-  .runningActivities div.running h2 {
+  .runningActivities div.NotReady h2,
+  .runningActivities div.Opened h2,
+  .runningActivities div.Stopped h2 {
+    color: rgb(var(--rgb-orange));
+  }
+  .runningActivities div.Started h2,
+  .runningActivities div.Closed h2 {
     color: rgb(var(--rgb-green));
   }
 
@@ -80,19 +86,48 @@
   }
   {{ styles.selectable('.runningActivities div dd', '--rgb-white') }}
 
-  .adminActions {
+  .opActions, .trainingActions {
     display: flex;
     justify-content: center;
-    margin-bottom: 20px;
+    margin-top: 10px;
   }
-  .adminActions form {
+  .opActions form, .trainingActions form {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
   }
-  .adminActions form input[type="submit"] {
+  .opActions form input[type="submit"], .trainingActions form input[type="submit"] {
+    background: rgba(var(--rgb-yellow), 0);
+    border: 1px solid rgba(var(--rgb-yellow), 0);
+    border-radius: 4px;
+    color: rgba(var(--rgb-yellow), 1);
+    cursor: pointer;
+    font: 12px system-ui, sans-serif;
+    padding: 4px 12px;
+    text-shadow: 0 1px 0 black; /* default text-shadow */
+
+    transition: all .1s ease-out;
+  }
+  .opActions form input[type="submit"]:hover, .trainingActions form input[type="submit"]:hover {
+    background: rgba(var(--rgb-yellow), .1);
+    border: 1px solid rgba(var(--rgb-yellow), 1);
+  }
+
+  .devActions {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  .devActions form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .devActions form input[type="submit"] {
     background: rgba(var(--rgb-red), 0);
     border: 1px solid rgba(var(--rgb-red), 0);
     border-radius: 4px;
@@ -104,7 +139,7 @@
 
     transition: all .1s ease-out;
   }
-  .adminActions form input[type="submit"]:hover {
+  .devActions form input[type="submit"]:hover {
     background: rgba(var(--rgb-red), .1);
     border: 1px solid rgba(var(--rgb-red), 1);
   }
@@ -114,7 +149,7 @@
 {% block body %}
 {{ super() }}
 <section class="runningActivities">
-  <div class="{% if opRunning %}running{% endif %}">
+  <div class="{% if opRunning %}{{ opStatus }}{% endif %}">
     <h2>
       {% if opRunning %}
         op in progress!
@@ -143,8 +178,42 @@
         <dd>{{ opBaseCaptureCount }}</dd>
       </dl>
     {% endif %}
+
+    <section class="opActions">
+      {% if not opRunning %}
+        <form action="op/open" method="post">
+          <input type="submit" value="open op" />
+        </form>
+        <form action="op/start" method="post">
+          <input type="submit" value="start op" />
+        </form>
+      {% endif %}
+      {% if opStatus === 'Opened' %}
+        <form action="op/start" method="post">
+          <input type="submit" value="start op" />
+        </form>
+      {% endif %}
+      {% if opStatus === 'Started' %}
+        <form action="op/stop" method="post">
+          <input type="submit" value="stop op" />
+        </form>
+        <form action="op/close" method="post">
+          <input type="submit" value="close op" />
+        </form>
+      {% endif %}
+      {% if opStatus === 'Stopped' %}
+        <form action="op/close" method="post">
+          <input type="submit" value="close op" />
+        </form>
+      {% endif %}
+      {% if opRunning %}
+        <form action="" method="get">
+          <input type="submit" value="refresh" />
+        </form>
+      {% endif %}
+    </section>
   </div>
-  <div class="{% if trainingRunning %}running{% endif %}">
+  <div class="{% if trainingRunning %}{{ trainingStatus }}{% endif %}">
     <h2>
       {% if trainingRunning %}
         training in progress!
@@ -164,29 +233,32 @@
         <dd>{{ trainingParticipantCount }}</dd>
       </dl>
     {% endif %}
+
+    <section class="trainingActions">
+      {% if not trainingRunning %}
+        <form action="training/start" method="post">
+          <input type="submit" value="start training" />
+        </form>
+      {% endif %}
+      {% if trainingStatus === 'Started' %}
+        <form action="training/stop" method="post">
+          <input type="submit" value="stop training" />
+        </form>
+      {% endif %}
+      {% if trainingRunning %}
+        <form action="" method="get">
+          <input type="submit" value="refresh" />
+        </form>
+      {% endif %}
+    </section>
   </div>
 </section>
 
 {% if user.isDev %}
-<section class="adminActions">
-  <form action="save" method="post">
-    <input type="submit" value="trigger manual store save" />
-  </form>
-
-  {#
-    <form action="op/open" method="post">
-      <input type="submit" value="open op" />
+  <section class="devActions">
+    <form action="save" method="post">
+      <input type="submit" value="trigger manual store save" />
     </form>
-    <form action="op/start" method="post">
-      <input type="submit" value="start op" />
-    </form>
-    <form action="op/stop" method="post">
-      <input type="submit" value="stop op" />
-    </form>
-    <form action="op/close" method="post">
-      <input type="submit" value="close op" />
-    </form>
-  #}
-</section>
+  </section>
 {% endif %}
 {% endblock body %}

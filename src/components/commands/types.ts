@@ -1,9 +1,9 @@
-import { Commands } from '../../consts';
 import { Message as DiscordMessage } from 'discord.js';
+import { Commands } from './commands';
 
 export type Command = {
-  mention: string;
+  discordAuthorId: string;
   commandName: Commands;
   param: string;
-  message: DiscordMessage;
+  discordMessage?: DiscordMessage;
 }

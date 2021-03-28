@@ -107,6 +107,8 @@ export class OpTracker {
 
     if (!this._channel) throw('Unexpected op _channel null');
 
+    this._startTime = DateTime.local();
+
     this._voiceChannels.push(await this._createChannel('Alpha', 12));
     this._voiceChannels.push(await this._createChannel('Bravo', 12));
     this._voiceChannels.push(await this._createChannel('Charlie', 12));
@@ -116,8 +118,6 @@ export class OpTracker {
       `Opened an op. Send "op start" command to start tracking in-game events.`
     + `\nSend a private message to ${getDiscordMention(discordBotUser.id)} saying "op _planetside2username_" to receive an individual op report when we stop the op.`
     );
-
-    this._startTime = DateTime.local();
   }
 
   async startTracking() {

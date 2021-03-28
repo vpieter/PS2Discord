@@ -9,22 +9,22 @@ export async function TrainingCommandHandler (command: Command): Promise<void> {
   const officerRole = await discordGuild.roles.fetch(DiscordRoleIdOfficer);
   const specialistRole = await discordGuild.roles.fetch(DiscordRoleIdSpecialist);
   if (
-      command.message.author.id !== '101347311627534336' && // potterv override
-      !leaderRole?.members.find(member => member.id === command.message.author.id) &&
-      !officerRole?.members.find(member => member.id === command.message.author.id) &&
-      !specialistRole?.members.find(member => member.id === command.message.author.id)
+      command.discordAuthorId !== '101347311627534336' && // potterv override
+      !leaderRole?.members.find(member => member.id === command.discordAuthorId) &&
+      !officerRole?.members.find(member => member.id === command.discordAuthorId) &&
+      !specialistRole?.members.find(member => member.id === command.discordAuthorId)
   ) {
-    await command.message.channel.send('You can\'t use this command (staff only).');
+    if (command.discordMessage) await command.discordMessage.channel.send('You can\'t use this command (staff only).');
     return;
   }
 
   // TrainingCommandHandler
   const runningTraining = runningActivities[Activities.Training] as TrainingTracker;
   if (command.param === 'stop') {
-    if (command.message.channel.type === 'text') await command.message.delete();
+    if (command.discordMessage?.channel?.type === 'text') await command.discordMessage.delete();
 
     if (!runningTraining) {
-      await command.message.channel.send('A training is not yet running. Send "training" command to start.');
+      if (command.discordMessage) await command.discordMessage.channel.send('A training is not yet running. Send "training" command to start.');
       return;
     }
 
@@ -34,8 +34,8 @@ export async function TrainingCommandHandler (command: Command): Promise<void> {
   }
 
   if (runningTraining) {
-    if (command.message.channel.type === 'text') await command.message.delete();
-    await command.message.channel.send('A training is already running. Send "training stop" command to stop.');
+    if (command.discordMessage?.channel?.type === 'text') await command.discordMessage.delete();
+    if (command.discordMessage) await command.discordMessage.channel.send('A training is already running. Send "training stop" command to stop.');
     return;
   }
 
@@ -45,5 +45,5 @@ export async function TrainingCommandHandler (command: Command): Promise<void> {
   training.start();
 
   runningActivities[Activities.Training] = training;
-  if (command.message.channel.type === 'text') await command.message.delete();
+  if (command.discordMessage?.channel?.type === 'text') await command.discordMessage.delete();
 };

@@ -1,37 +1,40 @@
 import { Command } from '../types';
-import { Commands, DiscordChannelIdOutfit, DiscordChannelIdFacility } from '../../../consts';
+import { Commands } from '../commands';
+import { DiscordChannelIdOutfit, DiscordChannelIdFacility } from '../../../consts';
 import { discordBotUser, ps2MainOutfit } from '../../../app'
 
 export async function HelpCommandHandler (command: Command): Promise<void> {
+  if (!command.discordMessage) throw('Unexpected HelpCommandHandler command.discordMessage null');
+
   switch (command.param) {
     case Commands.Help: {
-      command.message.channel.send(`What the fuck...`);
+      command.discordMessage.channel.send(`What the fuck...`);
       break;
     }
 
     case Commands.Members: {
-      command.message.channel.send(`The bot will post the number of players that are currently member of an outfit, for example: _<@!${discordBotUser.id}> members 91AR_.`);
+      command.discordMessage.channel.send(`The bot will post the number of players that are currently member of an outfit, for example: _<@!${discordBotUser.id}> members 91AR_.`);
       break;
     }
 
     case Commands.Online: {
-      command.message.channel.send(`The bot will post a list of currently online BJay members in the channel.`
+      command.discordMessage.channel.send(`The bot will post a list of currently online BJay members in the channel.`
       + `\nYou optionally add an outfit tag to the command to show another outfit's online members, for example: _<@!${discordBotUser.id}> online macs_.`);
       break;
     }
 
     case Commands.Bases: {
-      command.message.channel.send(`The bot will post a list of bases currently controlled by BJay in the channel.`);
+      command.discordMessage.channel.send(`The bot will post a list of bases currently controlled by BJay in the channel.`);
       break;
     }
 
     case Commands.Op: {
-      command.message.channel.send(`Members can use this command during an op to sign up for an individual op report via DM with the bot, for example: _op potterv_`);
+      command.discordMessage.channel.send(`Members can use this command during an op to sign up for an individual op report via DM with the bot, for example: _op potterv_`);
       break;
     }
 
     case null: {
-      command.message.channel.send(`This bot will show you how many ${ps2MainOutfit?.alias ?? 'outfit'} members are currently logged in on its discord status and show the list of online players in the <#${DiscordChannelIdOutfit}> topic.`
+      command.discordMessage.channel.send(`This bot will show you how many ${ps2MainOutfit?.alias ?? 'outfit'} members are currently logged in on its discord status and show the list of online players in the <#${DiscordChannelIdOutfit}> topic.`
       + `\nIt will also post base capture messages in the <#${DiscordChannelIdFacility}> channel and list bases currently controlled by BJay in the <#${DiscordChannelIdFacility}> topic.`
       + `\n`
       + `\nYou can also give commands to the bot, for example: _<@!${discordBotUser.id}> help online_`
@@ -48,7 +51,7 @@ export async function HelpCommandHandler (command: Command): Promise<void> {
     }
 
     default: {
-      command.message.channel.send(`Cannot provide help for unknown command "${command.param}".`);
+      command.discordMessage.channel.send(`Cannot provide help for unknown command "${command.param}".`);
     }
   }
 };

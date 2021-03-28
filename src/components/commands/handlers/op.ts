@@ -31,17 +31,17 @@ export async function OpCommandHandler (command: Command): Promise<void> {
   const specialistRole = await discordGuild.roles.fetch(DiscordRoleIdSpecialist);
   const memberRole = await discordGuild.roles.fetch(DiscordRoleIdMember);
   if (command.param in SubCommand) {
-    if (command.message.author.id !== '101347311627534336' && // potterv override
-      !leaderRole?.members.find(member => member.id === command.message.author.id) &&
-      !officerRole?.members.find(member => member.id === command.message.author.id) &&
-      !specialistRole?.members.find(member => member.id === command.message.author.id)
+    if (command.discordAuthorId !== '101347311627534336' && // potterv override
+      !leaderRole?.members.find(member => member.id === command.discordAuthorId) &&
+      !officerRole?.members.find(member => member.id === command.discordAuthorId) &&
+      !specialistRole?.members.find(member => member.id === command.discordAuthorId)
     ) {
-      await command.message.channel.send('You can\'t use this command (staff only).');
+      if (command.discordMessage) await command.discordMessage.channel.send('You can\'t use this command (staff only).');
       return;
     }
   } else {
-    if (!memberRole?.members.find(member => member.id === command.message.author.id)) {
-      await command.message.channel.send('You can\'t use this command (members only).');
+    if (!memberRole?.members.find(member => member.id === command.discordAuthorId)) {
+      if (command.discordMessage) await command.discordMessage.channel.send('You can\'t use this command (members only).');
       return;
     }
   }
@@ -51,10 +51,10 @@ export async function OpCommandHandler (command: Command): Promise<void> {
 
   switch(command.param) {
     case SubCommand.Open: {
-      if (command.message.channel.type === 'text') await command.message.delete();
+      if (command.discordMessage?.channel?.type === 'text') await command.discordMessage.delete();
 
       if (runningOp) {
-        await command.message.channel.send('An op is already running. Send "op close" command to make room for a new op.');
+        if (command.discordMessage) await command.discordMessage.channel.send('An op is already running. Send "op close" command to make room for a new op.');
         return;
       }
 
@@ -71,7 +71,7 @@ export async function OpCommandHandler (command: Command): Promise<void> {
         await runningOp.start();
       }
 
-      if (command.message.channel.type === 'text') await command.message.delete();
+      if (command.discordMessage?.channel?.type === 'text') await command.discordMessage.delete();
 
       // Start
       await runningOp.startTracking();
@@ -80,9 +80,9 @@ export async function OpCommandHandler (command: Command): Promise<void> {
     }
     case SubCommand.Stop: {
       if (!runningOp) {
-        await command.message.channel.send(`An op is not yet running. Send "op ${SubCommand.Start}" command to start.`);
+        if (command.discordMessage) await command.discordMessage.channel.send(`An op is not yet running. Send "op ${SubCommand.Start}" command to start.`);
       } else {
-        if (command.message.channel.type === 'text') await command.message.delete();
+        if (command.discordMessage?.channel?.type === 'text') await command.discordMessage.delete();
 
         // Stop
         await runningOp.stopTracking();
@@ -92,9 +92,9 @@ export async function OpCommandHandler (command: Command): Promise<void> {
     }
     case SubCommand.Close: {
       if (!runningOp) {
-        await command.message.channel.send(`An op is not yet running. Send "op ${SubCommand.Start}" command to start.`);
+        if (command.discordMessage) await command.discordMessage.channel.send(`An op is not yet running. Send "op ${SubCommand.Start}" command to start.`);
       } else {
-        if (command.message.channel.type === 'text') await command.message.delete();
+        if (command.discordMessage?.channel?.type === 'text') await command.discordMessage.delete();
 
         // Close
         await runningOp.stop();
@@ -108,10 +108,12 @@ export async function OpCommandHandler (command: Command): Promise<void> {
     default: {
       // solo report signup
       if (!runningOp) {
-        await command.message.channel.send(
-          `It's currently not possible to apply for an individual op report.`
-        + `\nYou can apply during and for a short while after we end the op.`
-        );
+        if (command.discordMessage) {
+          await command.discordMessage.channel.send(
+            `It's currently not possible to apply for an individual op report.`
+          + `\nYou can apply during and for a short while after we end the op.`
+          );
+        }
       } else {
         // ps2 username needs to be given
         if (command.param) {
@@ -120,11 +122,13 @@ export async function OpCommandHandler (command: Command): Promise<void> {
           // only members have been tracked and can apply
           if (member) {
             if (!runningOp.stoppedTracking) {
-              await command.message.channel.send(`You'll receive a solo op report for '${command.param}' when the current op ends.`);
+              if (command.discordMessage) {
+                await command.discordMessage.channel.send(`You'll receive a solo op report for '${command.param}' when the current op ends.`);
+              }
             }
-            await runningOp.addSoloOpReport(command.message.author, member.id);
+            if (command.discordMessage) await runningOp.addSoloOpReport(command.discordMessage.author, member.id);
           } else {
-            await command.message.channel.send(`Cannot find member '${command.param}'.`);
+            if (command.discordMessage) await command.discordMessage.channel.send(`Cannot find member '${command.param}'.`);
           }
         }
       }

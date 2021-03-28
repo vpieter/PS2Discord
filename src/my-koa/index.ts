@@ -1,12 +1,14 @@
-import Koa from 'koa'
+import Koa, { Context, DefaultState, ParameterizedContext } from 'koa'
 import KoaRouter from 'koa-router';
 import KoaSession from 'koa-session';
 import koaViews from 'koa-views';
 import koaCompress from 'koa-compress';
 import path from 'path';
-import Grant from 'grant-koa';
+import Grant, { GrantResponse } from 'grant';
 import { Guild as DiscordGuild } from 'discord.js';
 import { DiscordBotAppClient, DiscordBotAppSecret, DiscordRoleIdLeader, DiscordRoleIdMember, DiscordRoleIdOfficer, DiscordRoleIdSpecialist, KoaCookieKeys, KoaHost, KoaPort } from '../consts';
+import { Modify } from '../utils';
+import Router from 'koa-router';
 
 export type MyKoaUser = {
   name: string | null;
@@ -56,7 +58,7 @@ export default class MyKoa extends Koa {
     this.use(KoaSession(this));
 
     // Use discord oauth2 middleware
-    this.use(Grant({
+    this.use(Grant.koa(({
       "defaults": { "origin": `${KoaHost}:${KoaPort}`, "transport": "session" },
       "discord": {
         "key": DiscordBotAppClient,
@@ -65,7 +67,7 @@ export default class MyKoa extends Koa {
         "response": ["tokens", "profile"],
         "callback": "/",
       },
-    }));
+    })));
 
     this.use(this.userMiddleware);
 
@@ -169,4 +171,25 @@ export default class MyKoa extends Koa {
     ctx.state.user = user;
     await next();
   };
+}
+
+export type MyGrantResponse = Modify<GrantResponse, {
+  profile: MyGrantDiscordProfile;
+}>;
+
+export type MyGrantDiscordProfile = {
+  "id": string,
+  "username": string,
+  "avatar": string,
+  "discriminator": string,
+  "public_flags": number,
+  "flags": number,
+  "locale": string,
+  "mfa_enabled": boolean,
+};
+
+export function getGrantDiscordProfile(ctx: ParameterizedContext<DefaultState, Context & Router.IRouterParamContext<DefaultState, Context>>): MyGrantDiscordProfile {
+  const response: MyGrantResponse = ctx.session?.grant.response;
+
+  return response.profile;
 }

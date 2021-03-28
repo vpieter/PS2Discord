@@ -4,14 +4,16 @@ import { ps2MainOutfit, ps2RestClient } from '../../../app';
 import { MessageEmbed } from 'discord.js';
 
 export async function OnlineCommandHandler (command: Command): Promise<void> {
+  if (!command.discordMessage) throw('Unexpected OnlineCommandHandler command.discordMessage null');
+
   const aliasLookup = command.param || ps2MainOutfit.alias || 'BJay';
 
-  command.message.channel.startTyping();
+  command.discordMessage.channel.startTyping();
 
   const onlineOutfit = await ps2RestClient.getOnlineOutfit({outfitAlias: aliasLookup}).catch(consoleCatch);
   if (!onlineOutfit) {
-    await command.message.channel.send(`[${aliasLookup}] not found.`);
-    command.message.channel.stopTyping();
+    await command.discordMessage.channel.send(`[${aliasLookup}] not found.`);
+    command.discordMessage.channel.stopTyping();
     return;
   }
 
@@ -33,6 +35,6 @@ export async function OnlineCommandHandler (command: Command): Promise<void> {
     embed.setColor(onlineOutfit.faction.color);
   }
 
-  await command.message.channel.send(embed);
-  command.message.channel.stopTyping();
+  await command.discordMessage.channel.send(embed);
+  command.discordMessage.channel.stopTyping();
 };

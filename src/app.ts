@@ -2,10 +2,12 @@ import { PS2RestClient } from './ps2-rest-client';
 import { ZoneVM, MainOutfitVM, FactionVM, CapturedFacilityVM } from './ps2-rest-client/types';
 import { Client as DiscordClient, ClientUser as DiscordClientUser, Guild as DiscordGuild } from 'discord.js';
 import { ActivityTracker, BaseCapturesTracker, DiscordCommandListener, DiscordGreeter, MainOutfitUpdater, MembersOnlineTracker, OpTracker, TrainingTracker } from './components';
+import { Command } from './components/commands';
+import { Commands } from './components/commands/commands';
 import { Activities, DiscordBotToken, DiscordGuildId, KoaPort } from './consts';
-import { consoleCatch } from './utils';
+import { consoleCatch, wait } from './utils';
 import { filter, map, sortBy } from 'lodash';
-import MyKoa from './my-koa';
+import MyKoa, { getGrantDiscordProfile } from './my-koa';
 
 // Global
 export const ps2RestClient = PS2RestClient.getInstance();
@@ -57,6 +59,34 @@ const discordReady = async () => {
   });
   koa.indexRouter.use('/save', koa.devMiddleware).post('/save', async (ctx) => {
     await activityTracker.activityStore.save();
+    ctx.redirect(ctx.origin);
+  });
+  koa.indexRouter.use('/op/:opParam', koa.devMiddleware).post('/op/:opParam', async (ctx) => {
+    const paramExists = ['open', 'start', 'stop', 'close'].some(opParam => opParam === ctx.params.opParam);
+    if (!paramExists) return;
+
+    const command: Command = {
+      commandName: Commands.Op,
+      param: ctx.params.opParam,
+      discordAuthorId: getGrantDiscordProfile(ctx).id,
+    };
+    discordCommandListener.handle(command);
+    await wait(1000); // TODO: awaittable commands
+
+    ctx.redirect(ctx.origin);
+  });
+  koa.indexRouter.use('/training/:trainingParam', koa.devMiddleware).post('/training/:trainingParam', async (ctx) => {
+    const paramExists = ['start', 'stop'].some(trainingParam => trainingParam === ctx.params.trainingParam);
+    if (!paramExists) return;
+
+    const command: Command = {
+      commandName: Commands.Training,
+      param: ctx.params.trainingParam,
+      discordAuthorId: getGrantDiscordProfile(ctx).id,
+    };
+    discordCommandListener.handle(command);
+    await wait(1000); // TODO: awaittable commands
+
     ctx.redirect(ctx.origin);
   });
 
