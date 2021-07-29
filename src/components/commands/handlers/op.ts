@@ -1,7 +1,6 @@
 import { Command } from '../types';
 import { discordGuild, runningActivities, discordClient, ps2MainOutfit } from '../../../app';
 import { Activities, DiscordChannelIdOps, DiscordRoleIdLeader, DiscordRoleIdMember, DiscordRoleIdOfficer, DiscordRoleIdSpecialist } from '../../../consts';
-import { TextChannel } from 'discord.js';
 import { OpTracker } from '../..';
 
 enum SubCommand {
@@ -12,8 +11,9 @@ enum SubCommand {
 };
 
 export async function OpCommandHandler (command: Command): Promise<void> {
-  const channel = await discordClient.channels.fetch(DiscordChannelIdOps) as TextChannel;
-  if (channel.type !== 'text') throw('Ops channel should be a text channel.');
+  const channel = await discordClient.channels.fetch(DiscordChannelIdOps);
+  if (!channel) throw(`Unexpected null channel (${DiscordChannelIdOps}).`);
+  if (channel.type !== 'GUILD_TEXT') throw('Ops channel should be a text channel.');
 
   // Param alias
   if (command.param === 'init') {
@@ -51,7 +51,7 @@ export async function OpCommandHandler (command: Command): Promise<void> {
 
   switch(command.param) {
     case SubCommand.Open: {
-      if (command.discordMessage?.channel?.type === 'text') await command.discordMessage.delete();
+      if (command.discordMessage?.channel?.type === 'GUILD_TEXT') await command.discordMessage.delete();
 
       if (runningOp) {
         if (command.discordMessage) await command.discordMessage.channel.send('An op is already running. Send "op close" command to make room for a new op.');
@@ -71,7 +71,7 @@ export async function OpCommandHandler (command: Command): Promise<void> {
         await runningOp.start();
       }
 
-      if (command.discordMessage?.channel?.type === 'text') await command.discordMessage.delete();
+      if (command.discordMessage?.channel?.type === 'GUILD_TEXT') await command.discordMessage.delete();
 
       // Start
       await runningOp.startTracking();
@@ -82,7 +82,7 @@ export async function OpCommandHandler (command: Command): Promise<void> {
       if (!runningOp) {
         if (command.discordMessage) await command.discordMessage.channel.send(`An op is not yet running. Send "op ${SubCommand.Start}" command to start.`);
       } else {
-        if (command.discordMessage?.channel?.type === 'text') await command.discordMessage.delete();
+        if (command.discordMessage?.channel?.type === 'GUILD_TEXT') await command.discordMessage.delete();
 
         // Stop
         await runningOp.stopTracking();
@@ -94,7 +94,7 @@ export async function OpCommandHandler (command: Command): Promise<void> {
       if (!runningOp) {
         if (command.discordMessage) await command.discordMessage.channel.send(`An op is not yet running. Send "op ${SubCommand.Start}" command to start.`);
       } else {
-        if (command.discordMessage?.channel?.type === 'text') await command.discordMessage.delete();
+        if (command.discordMessage?.channel?.type === 'GUILD_TEXT') await command.discordMessage.delete();
 
         // Close
         await runningOp.stop();

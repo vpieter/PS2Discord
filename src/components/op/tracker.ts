@@ -1,7 +1,7 @@
 import { discordBotUser, ps2MainOutfit, ps2RestClient, ps2Zones } from '../../app';
 import { DiscordCategoryIdOps, DiscordChannelIdOpsLobby, DiscordChannelIdOps, DiscordChannelIdOpsDebrief } from '../../consts';
 import { getDiscordMention, wait } from '../../utils';
-import { Client as DiscordClient, Guild as DiscordGuild, Message, MessageEmbed, TextChannel, User, VoiceChannel } from 'discord.js';
+import { Client as DiscordClient, Guild as DiscordGuild, Message, MessageEmbed, Snowflake, TextChannel, User, VoiceChannel } from 'discord.js';
 import { DateTime, Interval } from 'luxon';
 import { DeathDto, GainExperienceDto } from '../../ps2-streaming-client/types';
 import { PS2StreamingClient } from '../../ps2-streaming-client';
@@ -83,12 +83,14 @@ export class OpTracker {
         return this;
       }),
       discordClient.channels.fetch(DiscordChannelIdOps).then(channel => {
-        if (channel.type !== 'text') throw('Ops channel should be a text channel.');
+        if (!channel) throw(`Unexpected null channel (${DiscordChannelIdOps}).`);
+        if (channel.type !== 'GUILD_TEXT') throw('Ops channel should be a text channel.');
         this._channel = channel as TextChannel;
         return this._channel;
       }),
       discordClient.channels.fetch(DiscordChannelIdOpsDebrief).then(channel => {
-        if (channel.type !== 'text') throw('Ops debrief channel should be a text channel.');
+        if (!channel) throw(`Unexpected null channel (${DiscordChannelIdOpsDebrief}).`);
+        if (channel.type !== 'GUILD_TEXT') throw('Ops debrief channel should be a text channel.');
         this._debriefChannel = channel as TextChannel;
         return this._debriefChannel;
       }),
@@ -179,7 +181,7 @@ export class OpTracker {
       .setDescription(descriptionText)
       .addField(`Example`, exampleText);
 
-    await this._debriefChannel.send(embed);
+    await this._debriefChannel.send({embeds: [embed]});
   }
 
   async stop() {
@@ -194,7 +196,7 @@ export class OpTracker {
 
     this._stopTime = DateTime.local();
 
-    if (this._message?.deletable) await this._message.delete({ reason: 'The op has ended.' });
+    if (this._message?.deletable) await this._message.delete();
     await this._removeChannels(DiscordChannelIdOpsLobby);
   }
 
@@ -215,10 +217,10 @@ export class OpTracker {
 
   // private methods
   private _createChannel = async (squadName: string, userLimit: number) => {
-    return await this._discordGuild.channels.create(`Op ${squadName}`, { type: 'voice', userLimit: userLimit, parent: DiscordCategoryIdOps });
+    return await this._discordGuild.channels.create(`Op ${squadName}`, { type: 'GUILD_VOICE', userLimit: userLimit, parent: DiscordCategoryIdOps });
   }
 
-  private _removeChannels = async (moveChannelId: string) => {
+  private _removeChannels = async (moveChannelId: Snowflake) => {
     this._voiceChannels.forEach(async voiceChannel => {
       if (!voiceChannel.deletable) throw(`Can't delete op voice channel.`);
 
@@ -226,7 +228,7 @@ export class OpTracker {
         await member.voice.setChannel(moveChannelId, 'The op has ended.');
       });
 
-      wait(15000).then(async () => { await voiceChannel.delete('The op has ended.'); });
+      wait(15000).then(async () => { await voiceChannel.delete(); });
     });
   }
 
@@ -287,10 +289,10 @@ export class OpTracker {
       .addField('Duration', `${duration.toFormat('hh:mm:ss')}`, true)
       .addField('Continents', continentNames, true)
       .addField('\u200b', '\u200b', false)
-      .addField('Kills', this._killLeaderboard.score, true)
-      .addField('Revives', this._reviveLeaderboard.score, true)
-      .addField('Heals', this._healLeaderboard.score, true)
-      .addField('Transport assists', this._transportLeaderboard.score, true);
+      .addField('Kills', this._killLeaderboard.score.toString(10), true)
+      .addField('Revives', this._reviveLeaderboard.score.toString(10), true)
+      .addField('Heals', this._healLeaderboard.score.toString(10), true)
+      .addField('Transport assists', this._transportLeaderboard.score.toString(10), true);
 
     if (
       this._killLeaderboard.score
@@ -309,12 +311,12 @@ export class OpTracker {
     if (this._transportLeaderboard.score) this._addLeaderboardField(reportEmbed, this._transportLeaderboard, 'Transport assists', 3);
 
     /// OVERVIEW REPORT
-    this._overviewMessage = await this._channel.send(reportEmbed);
+    this._overviewMessage = await this._channel.send({embeds: [reportEmbed]});
 
     return reportEmbed;
   }
 
-  private _sendSoloOpReport = async (soloReport: { user: User, characterId: string }) => {
+  public generateSoloOpReport = (characterId: string) => {
     if (!this.stoppedTracking) throw('Op has not stopped tracking yet.');
 
     if (!this._killLeaderboard) throw('Unexpected op _killLeaderboard null');
@@ -323,30 +325,36 @@ export class OpTracker {
     if (!this._transportLeaderboard) throw('Unexpected op _transportLeaderboard null');
     if (!this._overviewMessage) throw('Unexpected op _overviewMessage null');
 
-    const member = ps2MainOutfit.members.find(member => member.id === soloReport.characterId);
+    const member = ps2MainOutfit.members.find(member => member.id === characterId);
     if (!member) throw('Solo op report member not found');
 
-    const killEntry = this._killLeaderboard.entries.find(leaderboardEntry => leaderboardEntry.member.id === soloReport.characterId);
-    const reviveEntry = this._reviveLeaderboard.entries.find(leaderboardEntry => leaderboardEntry.member.id === soloReport.characterId);
-    const healEntry = this._healLeaderboard.entries.find(leaderboardEntry => leaderboardEntry.member.id === soloReport.characterId);
-    const transportEntry = this._transportLeaderboard.entries.find(leaderboardEntry => leaderboardEntry.member.id === soloReport.characterId);
+    const killEntry = this._killLeaderboard.entries.find(leaderboardEntry => leaderboardEntry.member.id === characterId);
+    const reviveEntry = this._reviveLeaderboard.entries.find(leaderboardEntry => leaderboardEntry.member.id === characterId);
+    const healEntry = this._healLeaderboard.entries.find(leaderboardEntry => leaderboardEntry.member.id === characterId);
+    const transportEntry = this._transportLeaderboard.entries.find(leaderboardEntry => leaderboardEntry.member.id === characterId);
 
     const soloEmbed = new MessageEmbed()
       .setTitle(`${member.name} op report.`)
       .setURL(this._overviewMessage.url)
-      .addField('Kills', killEntry?.score ?? 0, true)
-      .addField('Kills rank', killEntry?.rank ?? 'n/a', true)
+      .addField('Kills', killEntry?.score.toString(10) ?? '0', true)
+      .addField('Kills rank', killEntry?.rank.toString(10) ?? 'n/a', true)
       .addField('\u200b', '\u200b', false)
-      .addField('Revives', reviveEntry?.score ?? 0, true)
-      .addField('Revives rank', reviveEntry?.rank ?? 'n/a', true)
+      .addField('Revives', reviveEntry?.score.toString(10) ?? '0', true)
+      .addField('Revives rank', reviveEntry?.rank.toString(10) ?? 'n/a', true)
       .addField('\u200b', '\u200b', false)
-      .addField('Heals', healEntry?.score ?? 0, true)
-      .addField('Heals rank', healEntry?.rank ?? 'n/a', true)
+      .addField('Heals', healEntry?.score.toString(10) ?? '0', true)
+      .addField('Heals rank', healEntry?.rank.toString(10) ?? 'n/a', true)
       .addField('\u200b', '\u200b', false)
-      .addField('Transport assists', transportEntry?.score ?? 0, true)
-      .addField('Transport assists rank', transportEntry?.rank ?? 'n/a', true);
+      .addField('Transport assists', transportEntry?.score.toString(10) ?? '0', true)
+      .addField('Transport assists rank', transportEntry?.rank.toString(10) ?? 'n/a', true);
 
-    await soloReport.user.send(soloEmbed);
+    return soloEmbed;
+  }
+
+  private _sendSoloOpReport = async (soloReport: { user: User, characterId: string }) => {
+    const soloEmbed = this.generateSoloOpReport(soloReport.characterId);
+
+    await soloReport.user.send({embeds: [soloEmbed]});
   }
 
   private _getKillLeaderboard = ():Leaderboard => {

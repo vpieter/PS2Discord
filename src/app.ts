@@ -1,6 +1,6 @@
 import { PS2RestClient } from './ps2-rest-client';
 import { ZoneVM, MainOutfitVM, FactionVM, CapturedFacilityVM } from './ps2-rest-client/types';
-import { Client as DiscordClient, ClientUser as DiscordClientUser, Guild as DiscordGuild } from 'discord.js';
+import { Client as DiscordClient, ClientUser as DiscordClientUser, Guild as DiscordGuild, Intents as DiscordIntents } from 'discord.js';
 import { ActivityTracker, BaseCapturesTracker, DiscordCommandListener, DiscordGreeter, MainOutfitUpdater, MembersOnlineTracker, OpTracker, TrainingTracker } from './components';
 import { Command } from './components/commands';
 import { Commands } from './components/commands/commands';
@@ -16,7 +16,16 @@ export let ps2Zones: Array<ZoneVM> = [];
 export let ps2MainOutfit: MainOutfitVM;
 export let ps2ControlledBases: Array<CapturedFacilityVM> = [];
 
-export let discordClient = new DiscordClient();
+export let discordClient = new DiscordClient({
+  intents: new DiscordIntents([
+    DiscordIntents.FLAGS.GUILDS,
+    DiscordIntents.FLAGS.GUILD_MEMBERS,
+    DiscordIntents.FLAGS.GUILD_VOICE_STATES,
+    DiscordIntents.FLAGS.GUILD_MESSAGES,
+    DiscordIntents.FLAGS.DIRECT_MESSAGES,
+  ]),
+  partials: ['CHANNEL'],
+});
 export let discordBotUser: DiscordClientUser;
 export let discordGuild: DiscordGuild;
 export let koa: MyKoa;
@@ -71,7 +80,7 @@ const discordReady = async () => {
       discordAuthorId: getGrantDiscordProfile(ctx).id,
     };
     discordCommandListener.handle(command);
-    await wait(1000); // TODO: awaittable commands
+    await wait(1000); // TODO: awaitable commands
 
     ctx.redirect(ctx.origin);
   });
@@ -85,7 +94,7 @@ const discordReady = async () => {
       discordAuthorId: getGrantDiscordProfile(ctx).id,
     };
     discordCommandListener.handle(command);
-    await wait(1000); // TODO: awaittable commands
+    await wait(1000); // TODO: awaitable commands
 
     ctx.redirect(ctx.origin);
   });
@@ -126,9 +135,9 @@ const discordReady = async () => {
     // Start PS2Discord components
     mainOutfitUpdater.start();
     activityTracker.start();
-    discordCommandListener.start();
     discordGreeter.start();
     await Promise.all([
+      discordCommandListener.start(),
       membersOnlineTracker.start(),
       baseCapturesTracker.start(),
     ]);

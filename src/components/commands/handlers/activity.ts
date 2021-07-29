@@ -24,6 +24,6 @@ export async function ActivityCommandHandler (command: Command): Promise<void> {
     .setTitle(`${ps2MainOutfit.alias} member activity`)
     .addField(`${activity.length} Active members:`, activityString, false);
 
-  await command.discordMessage.channel.send(activityEmbed);
+  await command.discordMessage.channel.send({embeds: [activityEmbed]});
   return Promise.resolve();
 };

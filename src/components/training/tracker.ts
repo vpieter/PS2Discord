@@ -1,7 +1,7 @@
 import { ps2MainOutfit, runningActivities } from '../../app';
 import { DiscordGuildId, DiscordCategoryIdOps, DiscordChannelIdOpsLobby, DiscordChannelIdMentoring, Activities } from '../../consts';
 import { getDiscordMention, wait } from '../../utils';
-import { Client as DiscordClient, Guild as DiscordGuild, Message, MessageEmbed, TextChannel, VoiceChannel, VoiceState } from 'discord.js';
+import { Client as DiscordClient, Guild as DiscordGuild, Message, MessageEmbed, Snowflake, TextChannel, VoiceChannel, VoiceState } from 'discord.js';
 import { DateTime, Interval } from 'luxon';
 
 enum Status {
@@ -14,7 +14,6 @@ export class TrainingTracker {
   private _readyPromise: Promise<this>;
   private _discordClient: DiscordClient;
   private _discordGuild: DiscordGuild;
-  private _message: Message | null = null;
   private _channel: TextChannel | null = null;
   private _voiceChannels: Array<VoiceChannel> = [];
   private _participantDiscordIds: Array<string> = [];
@@ -54,7 +53,8 @@ export class TrainingTracker {
   constructor(discordClient: DiscordClient, discordGuild: DiscordGuild) {
     this._readyPromise = Promise.all([
       discordClient.channels.fetch(DiscordChannelIdMentoring).then(channel => {
-        if (channel.type !== 'text') throw('Training channel should be a text channel.');
+        if (!channel) throw(`Unexpected null channel (${DiscordChannelIdMentoring}).`);
+        if (channel.type !== 'GUILD_TEXT') throw('Training channel should be a text channel.');
         this._channel = channel as TextChannel;
         return this._channel;
       }),
@@ -78,9 +78,6 @@ export class TrainingTracker {
     this._voiceChannels.push(await this._createChannel('Bravo', 12));
     this._voiceChannels.push(await this._createChannel('Charlie', 12));
     this._voiceChannels.push(await this._createChannel('Delta', 12));
-
-    const messageText = `Started a training. Send "training stop" command to stop.`;
-    this._message = await this._channel.send(messageText);
   }
 
   async stop() {
@@ -88,14 +85,12 @@ export class TrainingTracker {
     if (this.stopped) throw('Training has already stopped.');
 
     if (!this._channel) throw('Unexpected training _channel null.');
-    if (!this._message) throw('Unexpected training _message null.');
 
     if (this._autoStopper) clearTimeout(this._autoStopper);
     this._discordClient.removeListener('voiceStateUpdate', this._voiceStatusUpdateListener);
     this._stopTime = DateTime.local();
 
-    if (this._message.deletable) await this._message.delete({ reason: 'The training has ended.' });
-    await this._channel.send(this._generateReport());
+    await this._channel.send({embeds: [this._generateReport()]});
     await this._removeChannels(DiscordChannelIdOpsLobby);
   }
 
@@ -112,8 +107,8 @@ export class TrainingTracker {
     }
 
     // Track participants
-    if (newState.channelID === null || newState.member === null) return;
-    if (!this._voiceChannels.some(channel => channel.id === newState.channelID)) return;
+    if (newState.channelId === null || newState.member === null) return;
+    if (!this._voiceChannels.some(channel => channel.id === newState.channelId)) return;
     if (this._participantDiscordIds.some(participantId => participantId === newState.member?.id)) return;
     this._participantDiscordIds.push(newState.member.id);
   }
@@ -129,10 +124,10 @@ export class TrainingTracker {
   }
 
   private _createChannel = async (squadName: string, userLimit: number) => {
-    return await this._discordGuild.channels.create(`Training ${squadName}`, { type: 'voice', userLimit: userLimit, parent: DiscordCategoryIdOps });
+    return await this._discordGuild.channels.create(`Training ${squadName}`, { type: 'GUILD_VOICE', userLimit: userLimit, parent: DiscordCategoryIdOps });
   }
 
-  private _removeChannels = async (moveChannelId: string) => {
+  private _removeChannels = async (moveChannelId: Snowflake) => {
     this._voiceChannels.forEach(async voiceChannel => {
       if (!voiceChannel.deletable) throw(`Can't delete training voice channel.`);
 
@@ -140,7 +135,7 @@ export class TrainingTracker {
         await member.voice.setChannel(moveChannelId, 'The training has ended.');
       });
 
-      wait(15000).then(async () => { await voiceChannel.delete('The training has ended.'); });
+      wait(15000).then(async () => { await voiceChannel.delete(); });
     });
   }
 

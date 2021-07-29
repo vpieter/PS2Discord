@@ -1,19 +1,20 @@
 import { Command } from '../types';
 import { consoleCatch } from '../../../utils';
 import { ps2MainOutfit, ps2RestClient } from '../../../app';
-import { MessageEmbed } from 'discord.js';
+import { HexColorString, MessageEmbed } from 'discord.js';
 
 export async function OnlineCommandHandler (command: Command): Promise<void> {
+  console.log('online', command);
   if (!command.discordMessage) throw('Unexpected OnlineCommandHandler command.discordMessage null');
+  if (command.discordMessage.channel.type !== 'GUILD_TEXT' && command.discordMessage.channel.type !== 'DM') throw('unexpected non-text command channel.');
 
   const aliasLookup = command.param || ps2MainOutfit.alias || 'BJay';
 
-  command.discordMessage.channel.startTyping();
+  command.discordMessage.channel.sendTyping();
 
   const onlineOutfit = await ps2RestClient.getOnlineOutfit({outfitAlias: aliasLookup}).catch(consoleCatch);
   if (!onlineOutfit) {
     await command.discordMessage.channel.send(`[${aliasLookup}] not found.`);
-    command.discordMessage.channel.stopTyping();
     return;
   }
 
@@ -32,9 +33,8 @@ export async function OnlineCommandHandler (command: Command): Promise<void> {
     embed.setDescription(`${onlineMembersString}`);
   }
   if (onlineOutfit.faction.color) {
-    embed.setColor(onlineOutfit.faction.color);
+    embed.setColor(`#${onlineOutfit.faction.color}` as HexColorString);
   }
 
-  await command.discordMessage.channel.send(embed);
-  command.discordMessage.channel.stopTyping();
+  await command.discordMessage.channel.send({embeds: [embed]});
 };

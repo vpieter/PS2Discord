@@ -50,7 +50,7 @@ export class ActivityTracker {
   // private methods
   private _voiceStatusUpdateListener = async (oldState: VoiceState, newState: VoiceState) => {
     if (newState.guild.id !== DiscordGuildId) return;
-    if (newState.channelID === null || newState.member === null) return;
+    if (newState.channelId === null || newState.member === null) return;
 
     const existingTrackedDiscordUser = this._activityStore.get(newState.member.id).value();
     const updatedVoiceHistory = [

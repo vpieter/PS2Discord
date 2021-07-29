@@ -30,7 +30,7 @@
   },
   "author": "pieterv",
   "dependencies": {
-    "discord.js": "^12.5.1",
+    "discord.js": "^13.0.0-dev.d310e4f.1627560163",
     "erlpack": "github:discord/erlpack",
     "jsonfile": "^6.1.0",
     "koa": "^2.13.1",

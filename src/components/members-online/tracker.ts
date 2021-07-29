@@ -98,11 +98,11 @@ export class MembersOnlineTracker {
   private _setDiscordPresence = async () => {
     if (this._discordClient.user === null) return;
 
-    await this._discordClient.user.setPresence({
-      activity: {
+    this._discordClient.user.setPresence({
+      activities: [{
         type: 'WATCHING',
-        name: `${ps2MainOutfit.members.filter(member => member.online).length}/${ps2MainOutfit.memberCount} ${ps2MainOutfit.alias} gays play`
-      },
+        name: `${ps2MainOutfit.members.filter(member => member.online).length}/${ps2MainOutfit.memberCount} ${ps2MainOutfit.alias} gays play`,
+      }],
       status: 'online',
     });
   }
@@ -122,7 +122,8 @@ export class MembersOnlineTracker {
       }
     
       const channel = await this._discordClient.channels.fetch(DiscordChannelIdOutfit);
-      if (channel.type !== 'text') throw(`Cannot set outfit topic in non-text channel (${channel.id}).`);
+      if (!channel) throw(`Unexpected null channel (${DiscordChannelIdOutfit}).`);
+      if (channel.type !== 'GUILD_TEXT') throw(`Cannot set outfit topic in non-text channel (${channel.id}).`);
     
       await (channel as TextChannel).setTopic(topicText);
     },

@@ -1,9 +1,11 @@
 import { Command } from './types';
-import { Commands } from './commands';
+import { Commands, DiscordCommands } from './commands';
 import { CommandHandlers } from './handlers';
 import { isFunction, keys } from 'lodash';
 import { Message, Client as DiscordClient } from 'discord.js';
 import XRegExp from 'xregexp';
+import { discordGuild } from '../../app';
+import { DiscordCommandHandlers } from './commands/index';
 
 export class DiscordCommandListener {
   private _started: boolean = false;
@@ -25,8 +27,20 @@ export class DiscordCommandListener {
     this._commands = keys(Commands);
   }
 
-  start() {
-    this._discordClient.on('message', this._messageListener);
+  async start() {
+    Object.values(DiscordCommands).forEach(async (command) => {
+      const handler = DiscordCommandHandlers[command];
+      if (isFunction(handler?.register)) await handler.register();
+    });
+
+    this._discordClient.on('interactionCreate', async interaction => {
+      if (!interaction.isCommand()) return;
+      
+      const handler = DiscordCommandHandlers[(interaction.commandName as DiscordCommands)];
+      if (isFunction(handler?.handle)) await handler.handle(interaction);
+    });
+        
+    this._discordClient.on('messageCreate', this._messageListener);
     this._started = true;
   }
 
@@ -38,10 +52,15 @@ export class DiscordCommandListener {
     if (isFunction(handler)) handler(command);
   }
 
-  stop() {
+  async stop() {
     if (!this.started) throw('DiscordCommandListener has not yet started.');
 
-    this._discordClient.removeListener('message', this._messageListener);
+    const commands = await discordGuild.commands.fetch();
+    commands.forEach(async command => {
+      await discordGuild.commands.delete(command);
+    });
+
+    this._discordClient.removeListener('messageCreate', this._messageListener);
     this._stopped = true;
   }
 
@@ -56,7 +75,7 @@ export class DiscordCommandListener {
     if (result === null) return;
 
     const { mention=null, commandName=null, param=null } = result;
-    if (discordMessage.channel.type !== 'dm' && mention === null) return;
+    if (discordMessage.channel.type !== 'DM' && mention === null) return;
     if (commandName === null) return;
 
     const discordAuthorId = discordMessage.author.id;

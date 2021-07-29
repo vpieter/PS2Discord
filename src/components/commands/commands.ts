@@ -7,3 +7,12 @@ export enum Commands {
   'Training' = 'training',
   // 'Activity' = 'activity',
 };
+
+export enum DiscordCommands {
+  'Members' = 'members',
+  'Online' = 'online',
+  'Bases' = 'bases',
+  'Training' = 'training',
+  'Op' = 'op',
+  'OpReport' = 'opreport',
+}

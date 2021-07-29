@@ -141,9 +141,10 @@ export class BaseCapturesTracker {
       .addField('Type', `${facility.type}`, true);
 
     const channel = await this._discordClient.channels.fetch(DiscordChannelIdFacility);
-    if (channel.type !== 'text') throw(`Cannot send base capture message in non-text channel (${channel.id}).`);
+    if (!channel) throw(`Unexpected null channel (${DiscordChannelIdFacility}).`);
+    if (channel.type !== 'GUILD_TEXT') throw(`Cannot send base capture message in non-text channel (${channel.id}).`);
 
-    return await (channel as TextChannel).send(embed);
+    return await (channel as TextChannel).send({embeds: [embed]});
   }
 
   private _setBaseCaptureMessageContributors = async (message: Message, contributors: Array<string>): Promise<Message> => {
@@ -152,7 +153,7 @@ export class BaseCapturesTracker {
     const embed = new MessageEmbed({...message.embeds[0]} as MessageEmbed);
     embed.addField('Contributors', `${contributors.length}`, true);
     embed.setDescription(contributors.sort((a,b)=>a.localeCompare(b)).join(', '));
-    return await message.edit(embed);
+    return await message.edit({embeds: [embed]});
   };
 
   private _setBaseCapturesTopic = debounce(
@@ -166,7 +167,8 @@ export class BaseCapturesTracker {
       }
 
       const channel = await this._discordClient.channels.fetch(DiscordChannelIdFacility);
-      if (channel.type !== 'text') throw(`Cannot set base captures topic in non-text channel (${channel.id}).`);
+      if (!channel) throw(`Unexpected null channel (${DiscordChannelIdFacility}).`);
+      if (channel.type !== 'GUILD_TEXT') throw(`Cannot set base captures topic in non-text channel (${channel.id}).`);
 
       await (channel as TextChannel).setTopic(topicText);
     },
@@ -238,7 +240,8 @@ export class BaseCapturesTracker {
       }
 
       const channel = await this._discordClient.channels.fetch(DiscordChannelIdFacility);
-      if (channel.type !== 'text') throw(`Cannot set base captures topic in non-text channel (${channel.id}).`);
+      if (!channel) throw(`Unexpected null channel (${DiscordChannelIdFacility}).`);
+      if (channel.type !== 'GUILD_TEXT') throw(`Cannot set base captures topic in non-text channel (${channel.id}).`);
 
       return await (channel as TextChannel).setTopic(topicText);
     },
