@@ -1,7 +1,7 @@
 import { PS2RestClient } from './ps2-rest-client';
 import { ZoneVM, MainOutfitVM, FactionVM, CapturedFacilityVM } from './ps2-rest-client/types';
 import { Client as DiscordClient, ClientUser as DiscordClientUser, Guild as DiscordGuild, Intents as DiscordIntents } from 'discord.js';
-import { ActivityTracker, BaseCapturesTracker, DiscordCommandListener, DiscordGreeter, MainOutfitUpdater, MembersOnlineTracker, OpTracker, TrainingTracker } from './components';
+import { ActivityTracker, BaseCapturesTracker, DiscordCommandListener, MainOutfitUpdater, MembersOnlineTracker, OpTracker, TrainingTracker } from './components';
 import { Command } from './components/commands';
 import { Commands } from './components/commands/commands';
 import { Activities, DiscordBotToken, DiscordGuildId, KoaPort } from './consts';
@@ -14,9 +14,9 @@ export const ps2RestClient = PS2RestClient.getInstance();
 export let ps2Factions: Array<FactionVM> = [];
 export let ps2Zones: Array<ZoneVM> = [];
 export let ps2MainOutfit: MainOutfitVM;
-export let ps2ControlledBases: Array<CapturedFacilityVM> = [];
+export const ps2ControlledBases: Array<CapturedFacilityVM> = [];
 
-export let discordClient = new DiscordClient({
+export const discordClient = new DiscordClient({
   intents: new DiscordIntents([
     DiscordIntents.FLAGS.GUILDS,
     DiscordIntents.FLAGS.GUILD_MEMBERS,
@@ -32,11 +32,10 @@ export let koa: MyKoa;
 export const mainOutfitUpdater = new MainOutfitUpdater();
 export const activityTracker = new ActivityTracker(discordClient);
 export const discordCommandListener = new DiscordCommandListener(discordClient);
-// export const discordGreeter = new DiscordGreeter(discordClient);
 export const membersOnlineTracker = new MembersOnlineTracker(discordClient);
 export const baseCapturesTracker = new BaseCapturesTracker(discordClient);
 
-export let runningActivities: {[key: string]: OpTracker | TrainingTracker} = {};
+export const runningActivities: {[key: string]: OpTracker | TrainingTracker} = {};
 
 const init = async () => {
   // Discord
@@ -135,7 +134,6 @@ const discordReady = async () => {
     // Start PS2Discord components
     mainOutfitUpdater.start();
     activityTracker.start();
-    // discordGreeter.start();
     await Promise.all([
       discordCommandListener.start(),
       membersOnlineTracker.start(),

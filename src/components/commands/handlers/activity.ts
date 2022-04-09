@@ -26,4 +26,4 @@ export async function ActivityCommandHandler (command: Command): Promise<void> {
 
   await command.discordMessage.channel.send({embeds: [activityEmbed]});
   return Promise.resolve();
-};
+}

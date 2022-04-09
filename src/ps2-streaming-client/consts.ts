@@ -10,4 +10,4 @@ export enum PS2StreamingEvent {
   'PlayerFacilityDefend' = 'PlayerFacilityDefend',
   'GainExperience' = 'GainExperience',
   'Death' = 'Death',
-};
+}

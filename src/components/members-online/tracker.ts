@@ -8,7 +8,7 @@ import { PlayerLogDTO, PS2StreamingEventListenerFn, PS2StreamingLookup } from '.
 import { wait } from '../../utils';
 
 export class MembersOnlineTracker {
-  private _started: boolean = false;
+  private _started = false;
   private _readyPromise: Promise<this>;
   private _ps2StreamingClient: PS2StreamingClient | null = null;
   private _discordClient: DiscordClient;
@@ -106,7 +106,7 @@ export class MembersOnlineTracker {
       status: 'online',
     });
   }
-  
+
   private _setOutfitTopic = debounce(
     async () => {
       const onlineMembers = ps2MainOutfit.members.filter(member => member.online);
@@ -120,11 +120,11 @@ export class MembersOnlineTracker {
       if (topicText.length > 1024) {
         topicText = `${topicText.substring(0, 1021)}...`;
       }
-    
+
       const channel = await this._discordClient.channels.fetch(DiscordChannelIdOutfit);
       if (!channel) throw(`Unexpected null channel (${DiscordChannelIdOutfit}).`);
       if (channel.type !== 'GUILD_TEXT') throw(`Cannot set outfit topic in non-text channel (${channel.id}).`);
-    
+
       await (channel as TextChannel).setTopic(topicText);
     },
     5*60*1000,

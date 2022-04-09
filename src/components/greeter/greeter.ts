@@ -4,7 +4,7 @@ import { consoleCatch, getDiscordMention, voidCatch } from '../../utils';
 import { Client as DiscordClient, GuildMember } from 'discord.js';
 
 export class DiscordGreeter {
-  private _started: boolean = false;
+  private _started = false;
   private _discordClient: DiscordClient;
 
   get started(): boolean {

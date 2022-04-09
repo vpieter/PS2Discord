@@ -54,4 +54,4 @@ export async function HelpCommandHandler (command: Command): Promise<void> {
       command.discordMessage.channel.send(`Cannot provide help for unknown command "${command.param}".`);
     }
   }
-};
+}

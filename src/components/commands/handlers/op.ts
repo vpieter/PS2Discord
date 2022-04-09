@@ -7,8 +7,8 @@ enum SubCommand {
   'Open' = 'open',
   'Start' = 'start',
   'Stop' = 'stop',
-  'Close' = 'close'
-};
+  'Close' = 'close',
+}
 
 export async function OpCommandHandler (command: Command): Promise<void> {
   const channel = await discordClient.channels.fetch(DiscordChannelIdOps);
@@ -136,4 +136,4 @@ export async function OpCommandHandler (command: Command): Promise<void> {
       break;
     }
   }
-};
+}

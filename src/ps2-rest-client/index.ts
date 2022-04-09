@@ -14,7 +14,7 @@ export class PS2RestClient
     if (isEmpty(userAgent)) throw('user agent required.');
 
     return this._instance || (this._instance = new this(userAgent));
-  };
+  }
 
   private _rest: RestClient;
   private constructor(userAgent: string) {
@@ -23,7 +23,7 @@ export class PS2RestClient
       `http://${HostName}/s:${PS2ApiToken}/get/ps2:v2/`,
     );
     this._rest.client.requestOptions = { socketTimeout : 20000 };
-  };
+  }
 
   // PS2RestClient
   public getFactions = async (): Promise<Array<FactionVM>> => {

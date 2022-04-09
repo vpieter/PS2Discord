@@ -1,4 +1,4 @@
-const config = require('../ps2discord.json');
+import config from '../ps2discord.json';
 
 export const PS2ApiToken = config.ps2.apiToken;
 export const PS2MainOutfitId = config.ps2.outfitId;
@@ -6,7 +6,7 @@ export const PS2MainOutfitId = config.ps2.outfitId;
 export enum Activities {
   'Op' = 'op',
   'Training' = 'training',
-};
+}
 
 export const DiscordBotToken = config.discordBot.token;
 export const DiscordBotAppClient = config.discordBot.appClient;

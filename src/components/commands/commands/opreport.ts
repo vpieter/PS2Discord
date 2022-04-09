@@ -22,15 +22,15 @@ export class OpReportCommand {
         description: 'Posts the response publicly in the current channel if true',
         required: false,
         type: DiscordConstants.ApplicationCommandOptionTypes.BOOLEAN,
-      }]
+      }],
     });
-    
+
     await cmd.permissions.add({
       permissions: ([DiscordRoleIdMember] as `${bigint}`[]).map(discordId => ({
         type: DiscordConstants.ApplicationCommandPermissionTypes.ROLE,
         id: discordId,
         permission: true,
-      }))
+      })),
     });
 
     await cmd.permissions.add({
@@ -38,7 +38,7 @@ export class OpReportCommand {
         type: DiscordConstants.ApplicationCommandPermissionTypes.USER,
         id: discordId,
         permission: true,
-      }))
+      })),
     });
   }
 
@@ -56,11 +56,11 @@ export class OpReportCommand {
       await interaction.reply({content: 'The op has not yet stopped.', ephemeral: true})
       return;
     }
-    
+
     // opreport
     const characterLookup = interaction.options.getString('character-name', true);
     const isPublic = interaction.options.getBoolean('public');
-    
+
     const characterId = ps2MainOutfit.members.find(member => member.name.toLowerCase() === characterLookup.toLowerCase())?.id;
     if (!characterId) {
       await interaction.reply({content: `Cannot find member '${characterLookup}'.`, ephemeral: true});

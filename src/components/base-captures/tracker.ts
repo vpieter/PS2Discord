@@ -10,7 +10,7 @@ import { ContinentLockDTO, FacilityControlDTO, PlayerFacilityDto, PS2StreamingLo
 import { consoleCatch, wait } from '../../utils';
 
 export class BaseCapturesTracker {
-  private _started: boolean = false;
+  private _started = false;
   private _readyPromise: Promise<this>;
   private _ps2StreamingClientWorld: PS2StreamingClient | null = null;
   private _ps2StreamingClientCharacters: PS2StreamingClient | null = null;
@@ -103,7 +103,7 @@ export class BaseCapturesTracker {
     // Most times the outfit won't have captured the base and this repeats 10 tries and stops.
     let i = 0;
     const intervalID = setInterval(() => {
-      if (i++ === 10) clearInterval(intervalID); // 
+      if (i++ === 10) clearInterval(intervalID); //
 
       // Maybe the FacilityControl event hasn't come in/been handled yet.
       const controlledBase = ps2ControlledBases.find(base => base.id === playerFacilityCaptureDto.facility_id);

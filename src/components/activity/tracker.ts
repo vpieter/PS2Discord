@@ -6,7 +6,7 @@ import { MyStore } from '../../my-store';
 import { getEmptyTrackedDiscordUser, TrackedDiscordUser } from './types';
 
 export class ActivityTracker {
-  private _started: boolean = false;
+  private _started = false;
   private _discordClient: DiscordClient;
   private _activityStore: MyStore<TrackedDiscordUser>;
 
@@ -29,7 +29,7 @@ export class ActivityTracker {
         ...trackedDiscordUser,
         voiceHistory: map(trackedDiscordUser.voiceHistory, voiceHistory => ({
           ...voiceHistory,
-          date: DateTime.fromISO(voiceHistory.date as any as string),
+          date: DateTime.fromISO(voiceHistory.date as unknown as string),
         })),
       }));
     });

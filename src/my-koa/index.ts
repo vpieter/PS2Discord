@@ -39,7 +39,8 @@ export class MyKoaRouter extends KoaRouter<Koa.DefaultState, Koa.Context> {
   }
 }
 
-// tslint:disable-next-line: max-classes-per-file
+type ExposeObjType = (ctx: Parameters<Parameters<MyKoaRouter['get']>[2]>[0]) => Promise<Parameters<typeof JSON.stringify>[0]>;
+
 export default class MyKoa extends Koa {
   listenPort: number;
   discordGuild: DiscordGuild;
@@ -47,6 +48,7 @@ export default class MyKoa extends Koa {
   indexRouter: MyKoaRouter;
   debugRouter: MyKoaRouter;
   publicRouter: MyKoaRouter;
+
 
   constructor(listenPort: number, discordGuild: DiscordGuild) {
     super();
@@ -103,21 +105,39 @@ export default class MyKoa extends Koa {
     this.listen(this.listenPort);
   }
 
-  expose(name:string, obj: (ctx: Koa.ParameterizedContext<Koa.DefaultState, Koa.Context & KoaRouter.IRouterParamContext<Koa.DefaultState, Koa.Context>>) => Promise<any>) {
+  expose(name:string, obj: ExposeObjType) {
     this.indexRouter.get(name, `/${name}`, async (ctx) => {
-      ctx.body = await ctx.render('expose', { json: JSON.stringify(await obj(ctx), null, 2), title: name } );
+      ctx.body = await ctx.render(
+        'expose',
+        {
+          json: JSON.stringify(await obj(ctx), null, 2),
+          title: name,
+        },
+      );
     });
   }
 
-  debugExpose(name:string, obj: (ctx: Koa.ParameterizedContext<Koa.DefaultState, Koa.Context & KoaRouter.IRouterParamContext<Koa.DefaultState, Koa.Context>>) => Promise<any>) {
+  debugExpose(name:string, obj: ExposeObjType) {
     this.debugRouter.get(name, `/${name}`, async (ctx) => {
-      ctx.body = await ctx.render('expose', { json: JSON.stringify(await obj(ctx), null, 2), title: name } );
+      ctx.body = await ctx.render(
+        'expose',
+        {
+          json: JSON.stringify(await obj(ctx), null, 2),
+          title: name,
+        },
+      );
     });
   }
 
-  publicExpose(name:string, obj: (ctx: Koa.ParameterizedContext<Koa.DefaultState, Koa.Context & KoaRouter.IRouterParamContext<Koa.DefaultState, Koa.Context>>) => Promise<any>) {
+  publicExpose(name:string, obj: ExposeObjType) {
     this.publicRouter.get(name, `/${name}`, async (ctx) => {
-      ctx.body = await ctx.render('expose', { json: JSON.stringify(await obj(ctx), null, 2), title: name } );
+      ctx.body = await ctx.render(
+        'expose',
+        {
+          json: JSON.stringify(await obj(ctx), null, 2),
+          title: name,
+        },
+      );
     });
   }
 

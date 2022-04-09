@@ -8,7 +8,7 @@ export enum PS2RestRequest {
   'Outfit' = 'outfit',
   'OutfitMember' = 'outfit_member',
   'Character' = 'character',
-};
+}
 
 export enum PS2RestResultCollections {
   'Faction' = 'faction_list',
@@ -17,7 +17,7 @@ export enum PS2RestResultCollections {
   'Outfit' = 'outfit_list',
   'OutfitMember' = 'outfit_member_list',
   'Character' = 'character_list',
-};
+}
 
 export const PS2FactionColors: Record<string, string> = {
   'VS': 'dd00ff',

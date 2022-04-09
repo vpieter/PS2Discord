@@ -37,4 +37,4 @@ export async function OnlineCommandHandler (command: Command): Promise<void> {
   }
 
   await command.discordMessage.channel.send({embeds: [embed]});
-};
+}

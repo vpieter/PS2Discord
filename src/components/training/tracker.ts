@@ -1,14 +1,14 @@
 import { ps2MainOutfit, runningActivities } from '../../app';
 import { DiscordGuildId, DiscordCategoryIdOps, DiscordChannelIdOpsLobby, DiscordChannelIdMentoring, Activities } from '../../consts';
 import { getDiscordMention, wait } from '../../utils';
-import { Client as DiscordClient, Guild as DiscordGuild, Message, MessageEmbed, Snowflake, TextChannel, VoiceChannel, VoiceState } from 'discord.js';
+import { Client as DiscordClient, Guild as DiscordGuild, MessageEmbed, Snowflake, TextChannel, VoiceChannel, VoiceState } from 'discord.js';
 import { DateTime, Interval } from 'luxon';
 
 enum Status {
   'Ready',
   'Started',
   'Stopped',
-};
+}
 
 export class TrainingTracker {
   private _readyPromise: Promise<this>;
@@ -65,7 +65,7 @@ export class TrainingTracker {
 
   async start() {
     if (this.started) throw('Training has already started.');
-    
+
     if (this._channel === null) {
       await this.ready.then(async () => await this.start());
       return;
@@ -100,7 +100,7 @@ export class TrainingTracker {
 
     // Check inactivity
     if (!this._startTime) throw('Unexpected training _startTime null.');
-    var duration = Interval.fromDateTimes(this._startTime, DateTime.local()).toDuration();
+    const duration = Interval.fromDateTimes(this._startTime, DateTime.local()).toDuration();
     const timeoutMinutes = (duration.minutes > 10 ? 5 : 15);
     if (this._voiceIsEmpty && !this._autoStopper) {
       this._autoStopper = setTimeout(this._autoStopperCallback, timeoutMinutes * 60 * 1000);

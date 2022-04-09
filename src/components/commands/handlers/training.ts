@@ -46,4 +46,4 @@ export async function TrainingCommandHandler (command: Command): Promise<void> {
 
   runningActivities[Activities.Training] = training;
   if (command.discordMessage?.channel?.type === 'GUILD_TEXT') await command.discordMessage.delete();
-};
+}

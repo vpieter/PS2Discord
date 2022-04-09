@@ -11,4 +11,4 @@ export async function BasesCommandHandler (command: Command): Promise<void> {
 
   await command.discordMessage.channel.send(messageText);
   return Promise.resolve();
-};
+}

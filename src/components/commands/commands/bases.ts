@@ -14,7 +14,7 @@ export class BasesCommand {
         description: 'Posts the response publicly in the current channel if true',
         required: false,
         type: DiscordConstants.ApplicationCommandOptionTypes.BOOLEAN,
-      }]
+      }],
     });
   }
 

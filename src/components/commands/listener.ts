@@ -8,8 +8,8 @@ import { discordGuild } from '../../app';
 import { DiscordCommandHandlers } from './commands/index';
 
 export class DiscordCommandListener {
-  private _started: boolean = false;
-  private _stopped: boolean = false;
+  private _started = false;
+  private _stopped = false;
   private _discordClient: DiscordClient;
   private _commands: string[];
 
@@ -83,4 +83,4 @@ export class DiscordCommandListener {
     const command: Command = { discordAuthorId, commandName, param, discordMessage };
     this.handle(command);
   };
-};
+}

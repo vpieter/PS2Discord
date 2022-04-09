@@ -19,7 +19,7 @@ export class PS2StreamingClient
         return resolve(instance);
       });
     });
-  };
+  }
 
   private _listeners: Partial<Record<PS2StreamingEvent, Array<PS2StreamingEventListener>>>;
   private _ws: WebSocket;
@@ -63,7 +63,7 @@ export class PS2StreamingClient
         listeners.forEach(listener => this.sendSubscribe(ps2StreamingEvent, listener));
       });
     });
-  };
+  }
 
   // PS2StreamingClient
   private sendSubscribe(event: PS2StreamingEvent, listener: PS2StreamingEventListener) {
@@ -83,7 +83,7 @@ export class PS2StreamingClient
       eventNames,
     };
     this._ws.send(JSON.stringify(subscribeMessage));
-  };
+  }
 
   public subscribe(event: PS2StreamingEvent, listenerFn: PS2StreamingEventListenerFn, lookup: PS2StreamingLookup = { worlds: ['13'] }): void {
     const listeners = this._listeners[event];
@@ -91,12 +91,12 @@ export class PS2StreamingClient
 
     const listener: PS2StreamingEventListener = {
       fn: listenerFn,
-      lookup
+      lookup,
     };
     listeners.push(listener);
 
     this.sendSubscribe(event, listener);
-  };
+  }
 
   public unsubscribe(event: PS2StreamingEvent, lookup: { worlds?: Array<string>, characters?: Array<string> } = { worlds: ['13'] }): void {
     const listeners = this._listeners[event];
@@ -111,5 +111,5 @@ export class PS2StreamingClient
       'eventNames': [event],
     };
     this._ws.send(JSON.stringify(unsubscribeMessage));
-  };
-};
+  }
+}

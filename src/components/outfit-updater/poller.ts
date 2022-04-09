@@ -3,7 +3,7 @@ import { ps2MainOutfit, ps2RestClient } from "../../app";
 import { consoleCatch } from "../../utils";
 
 export class MainOutfitUpdater {
-  private _started: boolean = false;
+  private _started = false;
   private _interval: NodeJS.Timer | null = null;
 
   get started(): boolean {

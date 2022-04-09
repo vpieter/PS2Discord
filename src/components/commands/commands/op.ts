@@ -36,7 +36,7 @@ export class OpCommand {
         type: DiscordConstants.ApplicationCommandPermissionTypes.ROLE,
         id: discordId,
         permission: true,
-      }))
+      })),
     });
 
     await cmd.permissions.add({
@@ -44,7 +44,7 @@ export class OpCommand {
         type: DiscordConstants.ApplicationCommandPermissionTypes.USER,
         id: discordId,
         permission: true,
-      }))
+      })),
     });
   }
 

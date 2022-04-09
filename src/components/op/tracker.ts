@@ -1,6 +1,6 @@
-import { discordBotUser, ps2MainOutfit, ps2RestClient, ps2Zones } from '../../app';
+import { ps2MainOutfit, ps2RestClient, ps2Zones } from '../../app';
 import { DiscordCategoryIdOps, DiscordChannelIdOpsLobby, DiscordChannelIdOps, DiscordChannelIdOpsDebrief } from '../../consts';
-import { getDiscordMention, wait } from '../../utils';
+import { wait } from '../../utils';
 import { Client as DiscordClient, Guild as DiscordGuild, Message, MessageEmbed, Snowflake, TextChannel, User, VoiceChannel } from 'discord.js';
 import { DateTime, Interval } from 'luxon';
 import { DeathDto, GainExperienceDto } from '../../ps2-streaming-client/types';
@@ -17,7 +17,7 @@ enum Status {
   'Started',
   'Stopped',
   'Closed',
-};
+}
 
 export class OpTracker {
   private _readyPromise: Promise<this>;
