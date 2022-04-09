@@ -32,6 +32,7 @@
   "dependencies": {
     "discord.js": "^13.6.0",
     "erlpack": "github:discord/erlpack",
+    "grant": "^5.4.21",
     "jsonfile": "^6.1.0",
     "koa": "^2.13.4",
     "koa-compress": "^5.1.0",
@@ -63,8 +64,7 @@
     "@types/ws": "^7.4.7",
     "@types/xregexp": "^4.4.0",
     "concurrently": "^7.1.0",
-    "cpx": "^1.5.0",
-    "grant": "^5.4.21"
+    "cpx": "^1.5.0"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.6",
