@@ -76,6 +76,14 @@ export class PS2RestClient
       name: zone.name.en,
     }));
 
+    // FFS the PS2 API still returns fucked up data, months after a game update.
+    if (!result.find(zone => zone.id === '344')) {
+      result.push({
+        id: '344',
+        'name': 'Oshur',
+      });
+    }
+
     return result;
   };
 

@@ -22,7 +22,7 @@ export class TrainingCommand {
         type: DiscordConstants.ApplicationCommandOptionTypes.SUB_COMMAND,
       }],
     });
-    
+
     await cmd.permissions.add({
       permissions: ([DiscordRoleIdLeader, DiscordRoleIdOfficer, DiscordRoleIdSpecialist] as `${bigint}`[]).map(discordId => ({
         type: DiscordConstants.ApplicationCommandPermissionTypes.ROLE,
@@ -43,7 +43,7 @@ export class TrainingCommand {
   static async handle(interaction: Interaction) {
     if (!interaction.isCommand() || interaction.commandName !== 'training') return;
 
-    await interaction.defer({ephemeral: true});
+    await interaction.deferReply({ephemeral: true});
 
     const action = interaction.options.getSubcommand();
     switch (action) {

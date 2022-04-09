@@ -29,8 +29,8 @@ export class MembersCommand {
 
     const aliasLookup = interaction.options.getString('outfit-tag') || ps2MainOutfit.alias || 'BJay';
     const isPublic = interaction.options.getBoolean('public');
-    
-    await interaction.defer({ephemeral: !isPublic});
+
+    await interaction.deferReply({ephemeral: !isPublic});
 
     const outfit = await ps2RestClient.getOutfit({outfitAlias: aliasLookup}).catch(consoleCatch);
     if (!outfit) {

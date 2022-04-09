@@ -6,7 +6,7 @@ export class OnlineCommand {
   static async register() {
     const cmds = await discordGuild.commands.fetch();
     if (cmds.find(cmd => cmd.name === 'online')) return;
-  
+
     await discordGuild.commands.create({
       name: 'online',
       description: 'Displays online planetside outfit members.',
@@ -30,7 +30,7 @@ export class OnlineCommand {
     const aliasLookup = interaction.options.getString('outfit-tag') || ps2MainOutfit.alias || 'BJay';
     const isPublic = interaction.options.getBoolean('public');
 
-    await interaction.defer({ephemeral: !isPublic});
+    await interaction.deferReply({ephemeral: !isPublic});
 
     const onlineOutfit = await ps2RestClient.getOnlineOutfit({outfitAlias: aliasLookup}).catch(consoleCatch);
     if (!onlineOutfit) {
