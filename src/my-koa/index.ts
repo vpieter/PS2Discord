@@ -39,8 +39,9 @@ export class MyKoaRouter extends KoaRouter<Koa.DefaultState, Koa.Context> {
   }
 }
 
+// tslint:disable-next-line: max-classes-per-file
 export default class MyKoa extends Koa {
-  listenPort:number;
+  listenPort: number;
   discordGuild: DiscordGuild;
 
   indexRouter: MyKoaRouter;

@@ -32,7 +32,7 @@ export let koa: MyKoa;
 export const mainOutfitUpdater = new MainOutfitUpdater();
 export const activityTracker = new ActivityTracker(discordClient);
 export const discordCommandListener = new DiscordCommandListener(discordClient);
-export const discordGreeter = new DiscordGreeter(discordClient);
+// export const discordGreeter = new DiscordGreeter(discordClient);
 export const membersOnlineTracker = new MembersOnlineTracker(discordClient);
 export const baseCapturesTracker = new BaseCapturesTracker(discordClient);
 
@@ -70,7 +70,7 @@ const discordReady = async () => {
     await activityTracker.activityStore.save();
     ctx.redirect(ctx.origin);
   });
-  koa.indexRouter.use('/op/:opParam', koa.devMiddleware).post('/op/:opParam', async (ctx) => {
+  koa.indexRouter.use('/op/:opParam', koa.staffMiddleware).post('/op/:opParam', async (ctx) => {
     const paramExists = ['open', 'start', 'stop', 'close'].some(opParam => opParam === ctx.params.opParam);
     if (!paramExists) return;
 
@@ -84,7 +84,7 @@ const discordReady = async () => {
 
     ctx.redirect(ctx.origin);
   });
-  koa.indexRouter.use('/training/:trainingParam', koa.devMiddleware).post('/training/:trainingParam', async (ctx) => {
+  koa.indexRouter.use('/training/:trainingParam', koa.staffMiddleware).post('/training/:trainingParam', async (ctx) => {
     const paramExists = ['start', 'stop'].some(trainingParam => trainingParam === ctx.params.trainingParam);
     if (!paramExists) return;
 
@@ -118,7 +118,7 @@ const discordReady = async () => {
   koa.debugExpose('ps2ControlledBases', async () => ps2ControlledBases);
   koa.debugExpose('runningActivities', async () => runningActivities);
   koa.debugExpose('trackedDiscordUsers', async () => activityTracker.activityStore.value());
-  
+
   koa.publicExpose('profile', async (ctx) => ctx.session?.grant?.response?.profile ?? {});
 
   koa.init();
@@ -135,7 +135,7 @@ const discordReady = async () => {
     // Start PS2Discord components
     mainOutfitUpdater.start();
     activityTracker.start();
-    discordGreeter.start();
+    // discordGreeter.start();
     await Promise.all([
       discordCommandListener.start(),
       membersOnlineTracker.start(),
@@ -145,7 +145,8 @@ const discordReady = async () => {
     console.log(`PS2Discord running for ${ps2MainOutfit.alias}.`);
   };
 
-  await PS2Init().catch(() => {
+  await PS2Init().catch((e) => {
+    console.error(e);
     console.log('exception during PS2Init. retrying in 3 minutes.');
     setTimeout(PS2Init, 3 * 60 * 1000);
   });

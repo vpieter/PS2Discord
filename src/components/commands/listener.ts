@@ -35,11 +35,11 @@ export class DiscordCommandListener {
 
     this._discordClient.on('interactionCreate', async interaction => {
       if (!interaction.isCommand()) return;
-      
+
       const handler = DiscordCommandHandlers[(interaction.commandName as DiscordCommands)];
       if (isFunction(handler?.handle)) await handler.handle(interaction);
     });
-        
+
     this._discordClient.on('messageCreate', this._messageListener);
     this._started = true;
   }

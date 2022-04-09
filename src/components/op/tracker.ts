@@ -101,7 +101,7 @@ export class OpTracker {
 
   async start() {
     if (this.started) throw('Op has already started.');
-    
+
     if (this._ps2StreamingClientCharacters === null) {
       await this.ready.then(async () => await this.start());
       return;
@@ -117,8 +117,8 @@ export class OpTracker {
     this._voiceChannels.push(await this._createChannel('Delta', 12));
 
     this._message = await this._channel.send(
-      `Opened an op. Send "op start" command to start tracking in-game events.`
-    + `\nSend a private message to ${getDiscordMention(discordBotUser.id)} saying "op _planetside2username_" to receive an individual op report when we stop the op.`
+      `Opened an op. Use "/op start" command to start tracking in-game events.`
+    + `\nUse "/opreport _ps2-character-name_" command to receive an individual op report when we stop the op.`
     );
   }
 
@@ -132,9 +132,9 @@ export class OpTracker {
     await this._startListeners();
     setInterval(this._resetListeners, 1000 * 60 * 30);
 
-    const messageText = `Started tracking an op. Send "op stop" command to stop tracking in-game events.`
-    + `\nSend "op close" command to stop the op, close voice channels and close applications for indiviual op reports.`
-    + `\nSend a private message to <@!${discordBotUser.id}> saying "op _planetside2username_" to receive an individual op report when we stop the op.`;
+    const messageText = `Started tracking an op. Use "/op stop" command to stop tracking in-game events.`
+    + `\nUse "/op close" command to stop the op, close voice channels and close applications for indiviual op reports.`
+    + `\nUse "/opreport _ps2-character-name_" command to receive an individual op report when we stop the op.`;
 
     if (this._message) await this._message.edit(messageText);
     else await this._channel.send(messageText);
@@ -421,7 +421,7 @@ export class OpTracker {
 
   private _startListeners = async () => {
     if (this._ps2StreamingClientCharacters === null) return;
-    
+
     this._eventProcessingQueue.start();
 
     // subscribe deaths

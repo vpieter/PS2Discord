@@ -24,7 +24,7 @@ export async function TrainingCommandHandler (command: Command): Promise<void> {
     if (command.discordMessage?.channel?.type === 'GUILD_TEXT') await command.discordMessage.delete();
 
     if (!runningTraining) {
-      if (command.discordMessage) await command.discordMessage.channel.send('A training is not yet running. Send "training" command to start.');
+      if (command.discordMessage) await command.discordMessage.channel.send('A training is not yet running. Use "/training start" command to start.');
       return;
     }
 
@@ -35,7 +35,7 @@ export async function TrainingCommandHandler (command: Command): Promise<void> {
 
   if (runningTraining) {
     if (command.discordMessage?.channel?.type === 'GUILD_TEXT') await command.discordMessage.delete();
-    if (command.discordMessage) await command.discordMessage.channel.send('A training is already running. Send "training stop" command to stop.');
+    if (command.discordMessage) await command.discordMessage.channel.send('A training is already running. Use "/training stop" command to stop.');
     return;
   }
 

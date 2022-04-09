@@ -54,7 +54,7 @@ export async function OpCommandHandler (command: Command): Promise<void> {
       if (command.discordMessage?.channel?.type === 'GUILD_TEXT') await command.discordMessage.delete();
 
       if (runningOp) {
-        if (command.discordMessage) await command.discordMessage.channel.send('An op is already running. Send "op close" command to make room for a new op.');
+        if (command.discordMessage) await command.discordMessage.channel.send('An op is already running. Use "/op close" command to make room for a new op.');
         return;
       }
 
@@ -80,7 +80,7 @@ export async function OpCommandHandler (command: Command): Promise<void> {
     }
     case SubCommand.Stop: {
       if (!runningOp) {
-        if (command.discordMessage) await command.discordMessage.channel.send(`An op is not yet running. Send "op ${SubCommand.Start}" command to start.`);
+        if (command.discordMessage) await command.discordMessage.channel.send(`An op is not yet running. Use "/op ${SubCommand.Start}" command to start.`);
       } else {
         if (command.discordMessage?.channel?.type === 'GUILD_TEXT') await command.discordMessage.delete();
 
@@ -92,7 +92,7 @@ export async function OpCommandHandler (command: Command): Promise<void> {
     }
     case SubCommand.Close: {
       if (!runningOp) {
-        if (command.discordMessage) await command.discordMessage.channel.send(`An op is not yet running. Send "op ${SubCommand.Start}" command to start.`);
+        if (command.discordMessage) await command.discordMessage.channel.send(`An op is not yet running. Use "/op ${SubCommand.Start}" command to start.`);
       } else {
         if (command.discordMessage?.channel?.type === 'GUILD_TEXT') await command.discordMessage.delete();
 
@@ -135,5 +135,5 @@ export async function OpCommandHandler (command: Command): Promise<void> {
 
       break;
     }
-  }  
+  }
 };
