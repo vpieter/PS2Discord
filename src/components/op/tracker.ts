@@ -31,6 +31,7 @@ export class OpTracker {
   private _opEvents: Array<GainExperienceDto | DeathDto> = [];
   private _baseCaptures: Array<FacilityVM> = [];
   private _ps2StreamingClientCharacters: PS2StreamingClient | null = null;
+  private _numberFormatter: Intl.NumberFormat = new Intl.NumberFormat('en-GB', { maximumFractionDigits: 1 });
   // time variables
   private _startTime: DateTime | null = null;
   private _startTrackingTime: DateTime | null = null;
@@ -269,10 +270,12 @@ export class OpTracker {
 
     ///
 
-    this._killLeaderboard = this._getKillLeaderboard();
-    this._reviveLeaderboard = this._getXPLeaderboard(['7', '53']);
-    this._healLeaderboard = this._getXPLeaderboard(['4', '51']);
-    this._transportLeaderboard = this._getXPLeaderboard(['30']);
+    const noMinutes = duration.shiftTo('minutes').minutes;
+
+    this._killLeaderboard = this._getKillLeaderboard(noMinutes);
+    this._reviveLeaderboard = this._getXPLeaderboard(['7', '53'], noMinutes);
+    this._healLeaderboard = this._getXPLeaderboard(['4', '51'], noMinutes);
+    this._transportLeaderboard = this._getXPLeaderboard(['30'], noMinutes);
 
     ///
 
@@ -285,14 +288,9 @@ export class OpTracker {
     const reportEmbed = new MessageEmbed()
       .setTitle(`[${ps2MainOutfit.alias}] ${ps2MainOutfit.name} op report.`)
       .addField(`${participants.length} Participants:`, participantNames, false)
-      .addField('Base captures', baseCaptures, false)
+      .addField(`${this._baseCaptures.length} Base captures`, baseCaptures, false)
       .addField('Duration', `${duration.toFormat('hh:mm:ss')}`, true)
-      .addField('Continents', continentNames, true)
-      .addField('\u200b', '\u200b', false)
-      .addField('Kills', this._killLeaderboard.score.toString(10), true)
-      .addField('Revives', this._reviveLeaderboard.score.toString(10), true)
-      .addField('Heals', this._healLeaderboard.score.toString(10), true)
-      .addField('Transport assists', this._transportLeaderboard.score.toString(10), true);
+      .addField('Continents', continentNames, true);
 
     if (
       this._killLeaderboard.score
@@ -333,20 +331,41 @@ export class OpTracker {
     const healEntry = this._healLeaderboard.entries.find(leaderboardEntry => leaderboardEntry.member.id === characterId);
     const transportEntry = this._transportLeaderboard.entries.find(leaderboardEntry => leaderboardEntry.member.id === characterId);
 
+    let killsDescription = `\u200b`;
+    if (killEntry?.score) {
+      killsDescription = `Rank: ${killEntry?.rank ? this._numberFormatter.format(killEntry.rank) : 'n/a'}`;
+      killsDescription += `\nPer minute: ${this._numberFormatter.format(killEntry?.scorePerMinute ?? 0)}`;
+      killsDescription += `\nPercentage of total: ${this._numberFormatter.format(killEntry?.scorePercentageOfTotal ?? 0)}%`;
+    }
+
+    let revivesDescription = `\u200b`;
+    if (reviveEntry?.score) {
+      revivesDescription = `Rank: ${reviveEntry?.rank ? this._numberFormatter.format(reviveEntry.rank) : 'n/a'}`;
+      revivesDescription += `\nPer minute: ${this._numberFormatter.format(reviveEntry?.scorePerMinute ?? 0)}`;
+      revivesDescription += `\nPercentage of total: ${this._numberFormatter.format(reviveEntry?.scorePercentageOfTotal ?? 0)}%`;
+    }
+
+    let healsDescription = `\u200b`;
+    if (healEntry?.score) {
+      healsDescription = `Rank: ${healEntry?.rank ? this._numberFormatter.format(healEntry.rank) : 'n/a'}`;
+      healsDescription += `\nPer minute: ${this._numberFormatter.format(healEntry?.scorePerMinute ?? 0)}`;
+      healsDescription += `\nPercentage of total: ${this._numberFormatter.format(healEntry?.scorePercentageOfTotal ?? 0)}%`;
+    }
+
+    let transportsDescription = `\u200b`;
+    if (transportEntry?.score) {
+      transportsDescription = `Rank: ${transportEntry?.rank ? this._numberFormatter.format(transportEntry.rank) : 'n/a'}`;
+      transportsDescription += `\nPer minute: ${this._numberFormatter.format(transportEntry?.scorePerMinute ?? 0)}`;
+      transportsDescription += `\nPercentage of total: ${this._numberFormatter.format(transportEntry?.scorePercentageOfTotal ?? 0)}%`;
+    }
+
     const soloEmbed = new MessageEmbed()
       .setTitle(`${member.name} op report.`)
       .setURL(this._overviewMessage.url)
-      .addField('Kills', killEntry?.score.toString(10) ?? '0', true)
-      .addField('Kills rank', killEntry?.rank.toString(10) ?? 'n/a', true)
-      .addField('\u200b', '\u200b', false)
-      .addField('Revives', reviveEntry?.score.toString(10) ?? '0', true)
-      .addField('Revives rank', reviveEntry?.rank.toString(10) ?? 'n/a', true)
-      .addField('\u200b', '\u200b', false)
-      .addField('Heals', healEntry?.score.toString(10) ?? '0', true)
-      .addField('Heals rank', healEntry?.rank.toString(10) ?? 'n/a', true)
-      .addField('\u200b', '\u200b', false)
-      .addField('Transport assists', transportEntry?.score.toString(10) ?? '0', true)
-      .addField('Transport assists rank', transportEntry?.rank.toString(10) ?? 'n/a', true);
+      .addField(`${killEntry?.score.toString(10) ?? '0'} Kills`, killsDescription)
+      .addField(`${reviveEntry?.score.toString(10) ?? '0'} Revives`, revivesDescription)
+      .addField(`${healEntry?.score.toString(10) ?? '0'} Heals`, healsDescription)
+      .addField(`${transportEntry?.score.toString(10) ?? '0'} Transport assists`, transportsDescription);
 
     return soloEmbed;
   }
@@ -357,43 +376,55 @@ export class OpTracker {
     await soloReport.user.send({embeds: [soloEmbed]});
   }
 
-  private _getKillLeaderboard = ():Leaderboard => {
-    const leaderboard: Leaderboard = { score: 0, entries: [] };
+  private _getKillLeaderboard = (noMinutes: number): Leaderboard => {
+    const leaderboard: Leaderboard = { score: 0, scorePerMinute: 0, entries: [] };
 
     const filteredEvents = this._opEvents.filter(event => event.event_name === 'Death') as DeathDto[];
     leaderboard.score = filteredEvents.length;
     if (!leaderboard.score) return leaderboard;
 
+    leaderboard.scorePerMinute = leaderboard.score / (noMinutes || 1);
+
     const sortedMemberEvents = sortBy(groupBy(filteredEvents, event => event.attacker_character_id), memberEvents => (memberEvents.length * -1));
     let rank = 0;
     sortedMemberEvents.forEach(memberKills => {
-      const score = memberKills.length;
       const member = ps2MainOutfit.members.find(member => member.id === memberKills[0].attacker_character_id);
-      if (!leaderboard.entries.filter(entry => entry.score === score).length) rank++;
       if (!member) throw('unexpected leaderboard member not found.');
 
-      leaderboard.entries.push({ score, member, rank });
+      const score = memberKills.length;
+      const scorePerMinute = score / (noMinutes || 1);
+      const scorePercentageOfTotal = (score / leaderboard.score) * 100;
+
+      if (!leaderboard.entries.filter(entry => entry.score === score).length) rank++;
+
+      leaderboard.entries.push({ score, scorePerMinute, scorePercentageOfTotal, member, rank });
     });
 
     return leaderboard;
   }
 
-  private _getXPLeaderboard = (xpTypes: Array<string>):Leaderboard => {
-    const leaderboard: Leaderboard = { score: 0, entries: [] };
+  private _getXPLeaderboard = (xpTypes: Array<string>, noMinutes: number): Leaderboard => {
+    const leaderboard: Leaderboard = { score: 0, scorePerMinute: 0, entries: [] };
 
     const filteredXP = this._opEvents.filter(event => event.event_name === 'GainExperience' && xpTypes.includes((event as GainExperienceDto).experience_id)) as GainExperienceDto[];
     leaderboard.score = filteredXP.length;
     if (!leaderboard.score) return leaderboard;
 
+    leaderboard.scorePerMinute = leaderboard.score / (noMinutes || 1);
+
     const sortedMemberXPs = sortBy(groupBy(filteredXP, xp => xp.character_id), memberXP => (memberXP.length * -1));
     let rank = 0;
     sortedMemberXPs.forEach(memberGainXPs => {
-      const score = memberGainXPs.length
       const member = ps2MainOutfit.members.find(member => member.id === memberGainXPs[0].character_id);
-      if (!leaderboard.entries.filter(entry => entry.score === score).length) rank++;
       if (!member) throw('unexpected leaderboard member not found.');
 
-      leaderboard.entries.push({ score, member, rank });
+      const score = memberGainXPs.length;
+      const scorePerMinute = score / (noMinutes || 1);
+      const scorePercentageOfTotal = (score / leaderboard.score) * 100;
+
+      if (!leaderboard.entries.filter(entry => entry.score === score).length) rank++;
+
+      leaderboard.entries.push({ score, scorePerMinute, scorePercentageOfTotal, member, rank });
     });
 
     return leaderboard;
@@ -406,9 +437,20 @@ export class OpTracker {
       if (!rankEntries.length) break;
 
       if (i !== 0) leaderboardText += `\n`;
-      leaderboardText += `${rankEntries.map(entry => entry.member.name).join(', ')} with ${rankEntries[0].score} ${eventName.toLowerCase()}`;
+
+      const rankEntry = rankEntries[0];
+      const names = `${rankEntries.map(entry => entry.member.name).join(', ')}`;
+      leaderboardText += `${names}:`;
+      leaderboardText += `\u00a0\u00a0\u00a0`;
+      leaderboardText += `**${this._numberFormatter.format(rankEntry.score)}** ${eventName.toLowerCase()}`;
+      leaderboardText += `\u00a0\u00a0\u00a0`;
+      leaderboardText += `||`;
+      leaderboardText += `${this._numberFormatter.format(rankEntry.scorePerMinute)} per min`;
+      leaderboardText += `\u00a0\u00a0\u00a0`;
+      leaderboardText += `${this._numberFormatter.format(rankEntry.scorePercentageOfTotal)}% of total`;
+      leaderboardText += `||`;
     }
-    return embed.addField(`${eventName} MVP`, leaderboardText, false)
+    return embed.addField(`${leaderboard.score} ${eventName}`, leaderboardText, false)
   }
 
   private _resetListeners = async () => {
