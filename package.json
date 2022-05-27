@@ -8,20 +8,20 @@
     "start:dev": "npm run dist:dev && concurrently --kill-others \"npm run _watch\" \"npm run _boot --prefix dist/\"",
     "start:dev:bawc": "npm run dist:dev:bawc && concurrently --kill-others \"npm run _watch\" \"npm run _boot --prefix dist/\"",
     "start:dev:blng": "npm run dist:dev:blng && concurrently --kill-others \"npm run _watch\" \"npm run _boot --prefix dist/\"",
-    "start:dev:t": "npm run dist:dev:t && concurrently --kill-others \"npm run _watch\" \"npm run _boot --prefix dist/\"",
+    "start:dev:bois": "npm run dist:dev:bois && concurrently --kill-others \"npm run _watch\" \"npm run _boot --prefix dist/\"",
     "start:prod": "npm run dist:prod && cd dist/ && npm run _boot",
 
     "dist:dev": "npm run _prepare && npm run _config:dev && npm run _build && npm run _prepublish",
     "dist:dev:bawc": "npm run _prepare && npm run _config:dev:bawc && npm run _build && npm run _prepublish",
     "dist:dev:blng": "npm run _prepare && npm run _config:dev:blng && npm run _build && npm run _prepublish",
-    "dist:dev:t": "npm run _prepare && npm run _config:dev:t && npm run _build && npm run _prepublish",
+    "dist:dev:bois": "npm run _prepare && npm run _config:dev:bois && npm run _build && npm run _prepublish",
     "dist:prod": "npm run _prepare && npm run _config:prod && npm run _build && npm run _prepublish",
 
     "_prepare": "rm -rf dist/ && mkdir dist",
     "_config:dev": "cp ps2discord.development.json dist/ps2discord.json",
     "_config:dev:bawc": "cp ps2discord.bawc.json dist/ps2discord.json",
     "_config:dev:blng": "cp ps2discord.blng.json dist/ps2discord.json",
-    "_config:dev:t": "cp ps2discord.t.json dist/ps2discord.json",
+    "_config:dev:bois": "cp ps2discord.bois.json dist/ps2discord.json",
     "_config:prod": "cp ps2discord.production.json dist/ps2discord.json",
     "_build": "tsc",
     "_prepublish": "cp package.json dist/ && cp package-lock.json dist/ && cp -R src/web/ dist/web/ && cp -R store/ dist/store/",
@@ -30,7 +30,7 @@
   },
   "author": "pieterv",
   "dependencies": {
-    "discord.js": "^13.6.0",
+    "discord.js": "^13.7.0",
     "erlpack": "github:discord/erlpack",
     "grant": "^5.4.21",
     "jsonfile": "^6.1.0",
@@ -40,13 +40,13 @@
     "koa-session": "^6.2.0",
     "koa-views": "^8.0.0",
     "lodash": "^4.17.21",
-    "luxon": "^2.3.1",
+    "luxon": "^2.4.0",
     "nunjucks": "^3.2.3",
     "p-queue": "^6.6.2",
     "path": "^0.12.7",
-    "typed-rest-client": "^1.8.6",
-    "typescript": "^4.6.3",
-    "ws": "^7.5.7",
+    "typed-rest-client": "^1.8.9",
+    "typescript": "^4.7.2",
+    "ws": "^7.5.8",
     "xregexp": "^5.1.0",
     "zlib-sync": "^0.1.7"
   },
@@ -57,22 +57,22 @@
     "@types/koa-compress": "^4.0.3",
     "@types/koa-router": "^7.4.4",
     "@types/koa-session": "^5.10.6",
-    "@types/lodash": "^4.14.181",
-    "@types/luxon": "^2.3.1",
-    "@types/node": "^16.11.26",
+    "@types/lodash": "^4.14.182",
+    "@types/luxon": "^2.3.2",
+    "@types/node": "^16.11.36",
     "@types/ws": "^7.4.7",
     "@types/xregexp": "^4.4.0",
-    "@typescript-eslint/eslint-plugin": "^5.18.0",
-    "@typescript-eslint/parser": "^5.18.0",
-    "concurrently": "^7.1.0",
+    "@typescript-eslint/eslint-plugin": "^5.26.0",
+    "@typescript-eslint/parser": "^5.26.0",
+    "concurrently": "^7.2.1",
     "cpx2": "^4.2.0",
-    "eslint": "^8.13.0"
+    "eslint": "^8.16.0"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.6",
     "utf-8-validate": "^5.0.9"
   },
   "volta": {
-    "node": "16.14.2"
+    "node": "16.15.0"
   }
 }
