@@ -306,25 +306,16 @@ export class OpTracker {
       .addField(`${participants.length} Participants:`, participantNames, false)
       .addField(`${this._baseCaptures.length} Base captures`, baseCaptures, false)
       .addField('Duration', `${duration.toFormat('hh:mm:ss')}`, true)
-      .addField('Continents', continentNames, true);
-
-    if (
-      this._killLeaderboard.score
-      || this._reviveLeaderboard.score
-      || this._healLeaderboard.score
-      || this._turretLeaderboard.score
-      || this._transportLeaderboard.score
-    ) {
-      reportEmbed.addField('\u200b', '\u200b', false);
-    }
+      .addField('Continents', continentNames, true)
+      .addField('\u200b', '\u200b');
 
     ///
 
-    if (this._killLeaderboard.score) this._addLeaderboardField(reportEmbed, this._killLeaderboard, 'Kills', 3);
-    if (this._reviveLeaderboard.score) this._addLeaderboardField(reportEmbed, this._reviveLeaderboard, 'Revives', 3);
-    if (this._healLeaderboard.score) this._addLeaderboardField(reportEmbed, this._healLeaderboard, 'Heals', 3);
-    if (this._turretLeaderboard.score) this._addLeaderboardField(reportEmbed, this._turretLeaderboard, 'Mana turret kills', 3);
-    if (this._transportLeaderboard.score) this._addLeaderboardField(reportEmbed, this._transportLeaderboard, 'Transport assists', 3);
+    if (this._killLeaderboard.score) this._addLeaderboardFields(reportEmbed, this._killLeaderboard, 'Kills', 3);
+    if (this._reviveLeaderboard.score) this._addLeaderboardFields(reportEmbed, this._reviveLeaderboard, 'Revives', 3);
+    if (this._healLeaderboard.score) this._addLeaderboardFields(reportEmbed, this._healLeaderboard, 'Heals', 3);
+    if (this._turretLeaderboard.score) this._addLeaderboardFields(reportEmbed, this._turretLeaderboard, 'Turret kills', 3);
+    if (this._transportLeaderboard.score) this._addLeaderboardFields(reportEmbed, this._transportLeaderboard, 'Transport assists', 3);
 
     /// OVERVIEW REPORT
     this._overviewMessage = await this._channel.send({embeds: [reportEmbed]});
@@ -415,8 +406,6 @@ export class OpTracker {
     leaderboard.score = filteredEvents.length;
     if (!leaderboard.score) return leaderboard;
 
-    leaderboard.scorePerMinute = leaderboard.score / (noMinutes || 1);
-
     const sortedMemberEvents = sortBy(groupBy(filteredEvents, event => event.attacker_character_id), memberEvents => (memberEvents.length * -1));
     let rank = 0;
     sortedMemberEvents.forEach(memberKills => {
@@ -432,6 +421,8 @@ export class OpTracker {
       leaderboard.entries.push({ score, scorePerMinute, scorePercentageOfTotal, member, rank });
     });
 
+    leaderboard.scorePerMinute = (leaderboard.score / (noMinutes || 1)) / (leaderboard.entries.length || 1);
+
     return leaderboard;
   }
 
@@ -441,8 +432,6 @@ export class OpTracker {
     const filteredXP = this._opEvents.filter(event => event.event_name === 'GainExperience' && xpTypes.includes((event as GainExperienceDto).experience_id)) as GainExperienceDto[];
     leaderboard.score = filteredXP.length;
     if (!leaderboard.score) return leaderboard;
-
-    leaderboard.scorePerMinute = leaderboard.score / (noMinutes || 1);
 
     const sortedMemberXPs = sortBy(groupBy(filteredXP, xp => xp.character_id), memberXP => (memberXP.length * -1));
     let rank = 0;
@@ -459,38 +448,34 @@ export class OpTracker {
       leaderboard.entries.push({ score, scorePerMinute, scorePercentageOfTotal, member, rank });
     });
 
+    leaderboard.scorePerMinute = (leaderboard.score / (noMinutes || 1)) / (leaderboard.entries.length || 1);
+
     return leaderboard;
   }
 
-  private _addLeaderboardField = (embed: MessageEmbed, leaderboard: Leaderboard, eventName: string, noRanks: number): void => {
-    let leaderboardText = ``;
-    let perMinuteText = ``;
-    let percentageOfTotalText = ``;
+  private _addLeaderboardFields = (embed: MessageEmbed, leaderboard: Leaderboard, eventName: string, noRanks: number): void => {
+    let fieldText = `\n`;
 
     for (let i=0; i<noRanks; i++) {
       const rankEntries = leaderboard.entries.filter(entry => entry.rank === i+1);
       if (!rankEntries.length) break;
 
-      if (i !== 0) {
-        leaderboardText += `\n`;
-        perMinuteText += `\n`;
-        percentageOfTotalText += `\n`;
-      }
-
       const rankEntry = rankEntries[0];
       const names = `${rankEntries.map(entry => entry.member.name).join(', ')}`;
-      leaderboardText += `${names}:`;
-      leaderboardText += `\u00a0\u00a0`;
-      leaderboardText += `**${this._numberFormatter.format(rankEntry.score)}** ${eventName.toLowerCase()}`;
-
-      perMinuteText += `${this._numberFormatter.format(rankEntry.scorePerMinute)}`;
-
-      percentageOfTotalText += `${this._numberFormatter.format(rankEntry.scorePercentageOfTotal)}%`;
+      fieldText += `> ${names}:`;
+      fieldText += `\u00a0\u00a0\u00a0\u00a0`;
+      fieldText += `**${this._numberFormatter.format(rankEntry.score)}** ${eventName.toLowerCase()}`;
+      fieldText += `\u00a0\u00a0\u00a0\u00a0`;
+      fieldText += `||\u00a0\u00a0${this._numberFormatter.format(rankEntry.scorePerMinute)} per min\u00a0\u00a0||`;
+      fieldText += `\n`;
     }
 
-    embed.addField(`${leaderboard.score} ${eventName}`, leaderboardText, true);
-    embed.addField(`per min`, perMinuteText, true);
-    embed.addField(`% of total`, percentageOfTotalText, true);
+    fieldText += `*`;
+    fieldText += `${leaderboard.entries.length} participants`;
+    fieldText += ` with on average ${this._numberFormatter.format(leaderboard.scorePerMinute)} ${eventName.toLowerCase()} per min`;
+    fieldText += `*`;
+
+    embed.addField(`${leaderboard.score} ${eventName}`, fieldText, false);
   }
 
   private _resetListeners = async () => {
