@@ -6,12 +6,14 @@
     "start": "npm run _boot",
 
     "start:dev": "npm run dist:dev && concurrently --kill-others \"npm run _watch\" \"npm run _boot --prefix dist/\"",
+    "start:dev:rbrn": "npm run dist:dev:rbrn && concurrently --kill-others \"npm run _watch\" \"npm run _boot --prefix dist/\"",
     "start:dev:bawc": "npm run dist:dev:bawc && concurrently --kill-others \"npm run _watch\" \"npm run _boot --prefix dist/\"",
     "start:dev:blng": "npm run dist:dev:blng && concurrently --kill-others \"npm run _watch\" \"npm run _boot --prefix dist/\"",
     "start:dev:bois": "npm run dist:dev:bois && concurrently --kill-others \"npm run _watch\" \"npm run _boot --prefix dist/\"",
     "start:prod": "npm run dist:prod && cd dist/ && npm run _boot",
 
     "dist:dev": "npm run _prepare && npm run _config:dev && npm run _build && npm run _prepublish",
+    "dist:dev:rbrn": "npm run _prepare && npm run _config:dev:rbrn && npm run _build && npm run _prepublish",
     "dist:dev:bawc": "npm run _prepare && npm run _config:dev:bawc && npm run _build && npm run _prepublish",
     "dist:dev:blng": "npm run _prepare && npm run _config:dev:blng && npm run _build && npm run _prepublish",
     "dist:dev:bois": "npm run _prepare && npm run _config:dev:bois && npm run _build && npm run _prepublish",
@@ -19,6 +21,7 @@
 
     "_prepare": "rm -rf dist/ && mkdir dist",
     "_config:dev": "cp ps2discord.development.json dist/ps2discord.json",
+    "_config:dev:rbrn": "cp ps2discord.rbrn.json dist/ps2discord.json",
     "_config:dev:bawc": "cp ps2discord.bawc.json dist/ps2discord.json",
     "_config:dev:blng": "cp ps2discord.blng.json dist/ps2discord.json",
     "_config:dev:bois": "cp ps2discord.bois.json dist/ps2discord.json",
