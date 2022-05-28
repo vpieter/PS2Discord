@@ -11,6 +11,20 @@ import { FacilityVM, OutfitMemberVM, ZoneVM } from '../../ps2-rest-client/types'
 import { PS2StreamingEvent } from '../../ps2-streaming-client/consts';
 import PQueue from 'p-queue';
 
+enum ExperienceIds {
+  'Heal' ='4',
+  'SquadHeal' = '51',
+
+  'Revive' = '7',
+  'SquadRevive' = '53',
+
+  'TransportAssist' = '30',
+}
+
+enum WeaponIds {
+  'ManaTurret' = '430',
+}
+
 enum Status {
   'NotReady',
   'Opened',
@@ -42,6 +56,7 @@ export class OpTracker {
   private _killLeaderboard: Leaderboard | null = null;
   private _reviveLeaderboard: Leaderboard | null = null;
   private _healLeaderboard: Leaderboard | null = null;
+  private _turretLeaderboard: Leaderboard | null = null;
   private _transportLeaderboard: Leaderboard | null = null;
 
   get ready(): Promise<this> {
@@ -272,10 +287,11 @@ export class OpTracker {
 
     const noMinutes = duration.shiftTo('minutes').minutes;
 
-    this._killLeaderboard = this._getKillLeaderboard(noMinutes);
-    this._reviveLeaderboard = this._getXPLeaderboard(['7', '53'], noMinutes);
-    this._healLeaderboard = this._getXPLeaderboard(['4', '51'], noMinutes);
-    this._transportLeaderboard = this._getXPLeaderboard(['30'], noMinutes);
+    this._killLeaderboard = this._getKillLeaderboard([], noMinutes);
+    this._reviveLeaderboard = this._getXPLeaderboard([ExperienceIds.Revive, ExperienceIds.SquadRevive], noMinutes);
+    this._healLeaderboard = this._getXPLeaderboard([ExperienceIds.Heal, ExperienceIds.SquadHeal], noMinutes);
+    this._turretLeaderboard = this._getKillLeaderboard([WeaponIds.ManaTurret], noMinutes);
+    this._transportLeaderboard = this._getXPLeaderboard([ExperienceIds.TransportAssist], noMinutes);
 
     ///
 
@@ -296,6 +312,7 @@ export class OpTracker {
       this._killLeaderboard.score
       || this._reviveLeaderboard.score
       || this._healLeaderboard.score
+      || this._turretLeaderboard.score
       || this._transportLeaderboard.score
     ) {
       reportEmbed.addField('\u200b', '\u200b', false);
@@ -306,6 +323,7 @@ export class OpTracker {
     if (this._killLeaderboard.score) this._addLeaderboardField(reportEmbed, this._killLeaderboard, 'Kills', 3);
     if (this._reviveLeaderboard.score) this._addLeaderboardField(reportEmbed, this._reviveLeaderboard, 'Revives', 3);
     if (this._healLeaderboard.score) this._addLeaderboardField(reportEmbed, this._healLeaderboard, 'Heals', 3);
+    if (this._turretLeaderboard.score) this._addLeaderboardField(reportEmbed, this._turretLeaderboard, 'Mana turret kills', 3);
     if (this._transportLeaderboard.score) this._addLeaderboardField(reportEmbed, this._transportLeaderboard, 'Transport assists', 3);
 
     /// OVERVIEW REPORT
@@ -320,6 +338,7 @@ export class OpTracker {
     if (!this._killLeaderboard) throw('Unexpected op _killLeaderboard null');
     if (!this._reviveLeaderboard) throw('Unexpected op _reviveLeaderboard null');
     if (!this._healLeaderboard) throw('Unexpected op _healLeaderboard null');
+    if (!this._turretLeaderboard) throw('Unexpected op _turretLeaderboard null');
     if (!this._transportLeaderboard) throw('Unexpected op _transportLeaderboard null');
     if (!this._overviewMessage) throw('Unexpected op _overviewMessage null');
 
@@ -329,6 +348,7 @@ export class OpTracker {
     const killEntry = this._killLeaderboard.entries.find(leaderboardEntry => leaderboardEntry.member.id === characterId);
     const reviveEntry = this._reviveLeaderboard.entries.find(leaderboardEntry => leaderboardEntry.member.id === characterId);
     const healEntry = this._healLeaderboard.entries.find(leaderboardEntry => leaderboardEntry.member.id === characterId);
+    const turretEntry = this._turretLeaderboard.entries.find(leaderboardEntry => leaderboardEntry.member.id === characterId);
     const transportEntry = this._transportLeaderboard.entries.find(leaderboardEntry => leaderboardEntry.member.id === characterId);
 
     let killsDescription = `\u200b`;
@@ -352,6 +372,13 @@ export class OpTracker {
       healsDescription += `\nPercentage of total: ${this._numberFormatter.format(healEntry?.scorePercentageOfTotal ?? 0)}%`;
     }
 
+    let turretKillsDescription = `\u200b`;
+    if (turretEntry?.score) {
+      turretKillsDescription = `Rank: ${turretEntry?.rank ? this._numberFormatter.format(turretEntry.rank) : 'n/a'}`;
+      turretKillsDescription += `\nPer minute: ${this._numberFormatter.format(turretEntry?.scorePerMinute ?? 0)}`;
+      turretKillsDescription += `\nPercentage of total: ${this._numberFormatter.format(turretEntry?.scorePercentageOfTotal ?? 0)}%`;
+    }
+
     let transportsDescription = `\u200b`;
     if (transportEntry?.score) {
       transportsDescription = `Rank: ${transportEntry?.rank ? this._numberFormatter.format(transportEntry.rank) : 'n/a'}`;
@@ -365,6 +392,7 @@ export class OpTracker {
       .addField(`${killEntry?.score.toString(10) ?? '0'} Kills`, killsDescription)
       .addField(`${reviveEntry?.score.toString(10) ?? '0'} Revives`, revivesDescription)
       .addField(`${healEntry?.score.toString(10) ?? '0'} Heals`, healsDescription)
+      .addField(`${turretEntry?.score.toString(10) ?? '0'} Mana turret kills`, turretKillsDescription)
       .addField(`${transportEntry?.score.toString(10) ?? '0'} Transport assists`, transportsDescription);
 
     return soloEmbed;
@@ -376,10 +404,14 @@ export class OpTracker {
     await soloReport.user.send({embeds: [soloEmbed]});
   }
 
-  private _getKillLeaderboard = (noMinutes: number): Leaderboard => {
+  private _getKillLeaderboard = (weaponIdFilter: string[], noMinutes: number): Leaderboard => {
     const leaderboard: Leaderboard = { score: 0, scorePerMinute: 0, entries: [] };
 
-    const filteredEvents = this._opEvents.filter(event => event.event_name === 'Death') as DeathDto[];
+    let filteredEvents = this._opEvents.filter(event => event.event_name === 'Death') as DeathDto[];
+    if (weaponIdFilter.length) {
+      filteredEvents = filteredEvents.filter(deathDto => weaponIdFilter.includes(deathDto.attacker_weapon_id));
+    }
+
     leaderboard.score = filteredEvents.length;
     if (!leaderboard.score) return leaderboard;
 
@@ -430,27 +462,35 @@ export class OpTracker {
     return leaderboard;
   }
 
-  private _addLeaderboardField = async (embed: MessageEmbed, leaderboard: Leaderboard, eventName: string, noRanks: number): Promise<MessageEmbed> => {
+  private _addLeaderboardField = (embed: MessageEmbed, leaderboard: Leaderboard, eventName: string, noRanks: number): void => {
     let leaderboardText = ``;
+    let perMinuteText = ``;
+    let percentageOfTotalText = ``;
+
     for (let i=0; i<noRanks; i++) {
       const rankEntries = leaderboard.entries.filter(entry => entry.rank === i+1);
       if (!rankEntries.length) break;
 
-      if (i !== 0) leaderboardText += `\n`;
+      if (i !== 0) {
+        leaderboardText += `\n`;
+        perMinuteText += `\n`;
+        percentageOfTotalText += `\n`;
+      }
 
       const rankEntry = rankEntries[0];
       const names = `${rankEntries.map(entry => entry.member.name).join(', ')}`;
       leaderboardText += `${names}:`;
-      leaderboardText += `\u00a0\u00a0\u00a0`;
+      leaderboardText += `\u00a0\u00a0`;
       leaderboardText += `**${this._numberFormatter.format(rankEntry.score)}** ${eventName.toLowerCase()}`;
-      leaderboardText += `\u00a0\u00a0\u00a0`;
-      leaderboardText += `||`;
-      leaderboardText += `${this._numberFormatter.format(rankEntry.scorePerMinute)} per min`;
-      leaderboardText += `\u00a0\u00a0\u00a0`;
-      leaderboardText += `${this._numberFormatter.format(rankEntry.scorePercentageOfTotal)}% of total`;
-      leaderboardText += `||`;
+
+      perMinuteText += `${this._numberFormatter.format(rankEntry.scorePerMinute)}`;
+
+      percentageOfTotalText += `${this._numberFormatter.format(rankEntry.scorePercentageOfTotal)}%`;
     }
-    return embed.addField(`${leaderboard.score} ${eventName}`, leaderboardText, false)
+
+    embed.addField(`${leaderboard.score} ${eventName}`, leaderboardText, true);
+    embed.addField(`per min`, perMinuteText, true);
+    embed.addField(`% of total`, percentageOfTotalText, true);
   }
 
   private _resetListeners = async () => {
@@ -509,13 +549,13 @@ export class OpTracker {
       {
         characters: ps2MainOutfit.members.map(member => member.id),
         experienceIds: [
-          '4', /* Heal */
-          '51', /* Squad heal */
+          ExperienceIds.Heal,
+          ExperienceIds.SquadHeal,
 
-          '7', /* Revive */
-          '53', /* Squad revive */
+          ExperienceIds.Revive,
+          ExperienceIds.SquadRevive,
 
-          '30', /* Transport Assist */
+          ExperienceIds.TransportAssist,
         ],
       }
     );
