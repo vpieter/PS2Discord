@@ -1,4 +1,4 @@
-import { Constants as DiscordConstants, HexColorString, Interaction, MessageEmbed } from 'discord.js';
+import { HexColorString, EmbedBuilder, ApplicationCommandOptionType, Interaction } from 'discord.js';
 import { discordGuild, ps2ControlledBases, ps2MainOutfit } from '../../../app';
 
 export class BasesCommand {
@@ -13,23 +13,25 @@ export class BasesCommand {
         name: 'public',
         description: 'Posts the response publicly in the current channel if true',
         required: false,
-        type: DiscordConstants.ApplicationCommandOptionTypes.BOOLEAN,
+        type: ApplicationCommandOptionType.Boolean,
       }],
     });
   }
 
   static async handle(interaction: Interaction) {
-    if (!interaction.isCommand() || interaction.commandName !== 'bases') return;
+    if (!interaction.isChatInputCommand() || interaction.commandName !== 'bases') return;
 
     const outfit = ps2MainOutfit;
     const basesText = ps2ControlledBases.length ?
       ps2ControlledBases.map(facility => `${facility.name} (${facility.zone.name} ${facility.type})`).join(`\n`) :
       'No bases';
 
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setTitle(`[${outfit.alias}] ${outfit.name}`)
       .setURL(`https://ps2.fisu.pw/outfit/?name=${outfit.alias}`)
-      .addField('Currently controls', basesText, false);
+      .addFields([
+        { name: 'Currently controls', value: basesText, inline: false },
+      ]);
 
     if (outfit.faction.color) {
       embed.setColor(`#${outfit.faction.color}` as HexColorString);

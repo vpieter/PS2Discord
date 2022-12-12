@@ -1,7 +1,7 @@
 import { ps2MainOutfit, runningActivities } from '../../app';
 import { DiscordGuildId, DiscordCategoryIdOps, DiscordChannelIdOpsLobby, DiscordChannelIdMentoring, Activities } from '../../consts';
 import { getDiscordMention, wait } from '../../utils';
-import { Client as DiscordClient, Guild as DiscordGuild, MessageEmbed, Snowflake, TextChannel, VoiceChannel, VoiceState } from 'discord.js';
+import { ChannelType, Client as DiscordClient, EmbedBuilder, Guild as DiscordGuild, Snowflake, TextChannel, VoiceChannel, VoiceState } from 'discord.js';
 import { DateTime, Interval } from 'luxon';
 
 enum Status {
@@ -54,7 +54,7 @@ export class TrainingTracker {
     this._readyPromise = Promise.all([
       discordClient.channels.fetch(DiscordChannelIdMentoring).then(channel => {
         if (!channel) throw(`Unexpected null channel (${DiscordChannelIdMentoring}).`);
-        if (channel.type !== 'GUILD_TEXT') throw('Training channel should be a text channel.');
+        if (channel.type !== ChannelType.GuildText) throw('Training channel should be a text channel.');
         this._channel = channel as TextChannel;
         return this._channel;
       }),
@@ -124,7 +124,7 @@ export class TrainingTracker {
   }
 
   private _createChannel = async (squadName: string, userLimit: number) => {
-    return await this._discordGuild.channels.create(`Training ${squadName}`, { type: 'GUILD_VOICE', userLimit: userLimit, parent: DiscordCategoryIdOps });
+    return await this._discordGuild.channels.create({ name: `Training ${squadName}`, type: ChannelType.GuildVoice, userLimit: userLimit, parent: DiscordCategoryIdOps });
   }
 
   private _removeChannels = async (moveChannelId: Snowflake) => {
@@ -147,10 +147,12 @@ export class TrainingTracker {
         : 'No one joined the training voice channels.';
 
     const duration = Interval.fromDateTimes(this._startTime, this._stopTime).toDuration();
-    const reportEmbed = new MessageEmbed()
+    const reportEmbed = new EmbedBuilder()
       .setTitle(`[${ps2MainOutfit.alias}] ${ps2MainOutfit.name} training report.`)
-      .addField(`${this._participantDiscordIds.length} Participants:`, participantNames, false)
-      .addField('Duration', `${duration.toFormat('hh:mm:ss')}`, true);
+      .addFields([
+        { name: `${this._participantDiscordIds.length} Participants:`, value: participantNames, inline: false },
+        { name: 'Duration', value: `${duration.toFormat('hh:mm:ss')}`, inline: true },
+      ]);
 
     return reportEmbed;
   }

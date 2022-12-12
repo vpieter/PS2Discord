@@ -1,7 +1,7 @@
-import { Constants as DiscordConstants, Interaction } from "discord.js";
+import { ApplicationCommandOptionType, ApplicationCommandPermissionType, Interaction } from "discord.js";
 import { OpTracker } from "../..";
 import { discordGuild, ps2MainOutfit, runningActivities } from "../../../app";
-import { Activities, DiscordRoleIdMember } from "../../../consts";
+import { Activities, DiscordBotToken, DiscordRoleIdMember } from "../../../consts";
 
 export class OpReportCommand {
   static async register() {
@@ -10,40 +10,43 @@ export class OpReportCommand {
 
     const cmd = await discordGuild.commands.create({
       name: 'opreport',
-      description: `Display personal op reports.`,
-      defaultPermission: false,
+      description: 'Display personal op reports.',
+      defaultMemberPermissions: '0',
+      dmPermission: false,
       options: [{
         name: 'character-name',
         description: 'The PlanetSide character name to look up.',
         required: true,
-        type: DiscordConstants.ApplicationCommandOptionTypes.STRING,
+        type: ApplicationCommandOptionType.String,
       }, {
         name: 'public',
         description: 'Posts the response publicly in the current channel if true',
         required: false,
-        type: DiscordConstants.ApplicationCommandOptionTypes.BOOLEAN,
+        type: ApplicationCommandOptionType.Boolean,
       }],
     });
 
     await cmd.permissions.add({
       permissions: ([DiscordRoleIdMember] as `${bigint}`[]).map(discordId => ({
-        type: DiscordConstants.ApplicationCommandPermissionTypes.ROLE,
+        type: ApplicationCommandPermissionType.Role,
         id: discordId,
         permission: true,
       })),
+      token: DiscordBotToken,
     });
 
     await cmd.permissions.add({
       permissions: (['101347311627534336'] as `${bigint}`[]).map(discordId => ({
-        type: DiscordConstants.ApplicationCommandPermissionTypes.USER,
+        type: ApplicationCommandPermissionType.User,
         id: discordId,
         permission: true,
       })),
+      token: DiscordBotToken,
     });
   }
 
   static async handle(interaction: Interaction) {
-    if (!interaction.isCommand() || interaction.commandName !== 'opreport') return;
+    if (!interaction.isChatInputCommand() || interaction.commandName !== 'opreport') return;
 
     // guard
     const runningOp = runningActivities[Activities.Op] as OpTracker;

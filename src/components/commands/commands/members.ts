@@ -1,4 +1,4 @@
-import { Constants as DiscordConstants, HexColorString, Interaction, MessageEmbed } from 'discord.js';
+import { ApplicationCommandOptionType, HexColorString, EmbedBuilder, Interaction } from 'discord.js';
 import { discordGuild, ps2MainOutfit, ps2RestClient } from '../../../app';
 import { consoleCatch } from '../../../utils';
 
@@ -14,18 +14,18 @@ export class MembersCommand {
         name: 'outfit-tag',
         description: 'The outfit tag to look up.',
         required: false,
-        type: DiscordConstants.ApplicationCommandOptionTypes.STRING,
+        type: ApplicationCommandOptionType.String,
       }, {
         name: 'public',
         description: 'Posts the response publicly in the current channel if true',
         required: false,
-        type: DiscordConstants.ApplicationCommandOptionTypes.BOOLEAN,
+        type: ApplicationCommandOptionType.Boolean,
       }],
     });
   }
 
   static async handle(interaction: Interaction) {
-    if (!interaction.isCommand() || interaction.commandName !== 'members') return;
+    if (!interaction.isChatInputCommand() || interaction.commandName !== 'members') return;
 
     const aliasLookup = interaction.options.getString('outfit-tag') || ps2MainOutfit.alias || 'BJay';
     const isPublic = interaction.options.getBoolean('public');
@@ -38,11 +38,13 @@ export class MembersCommand {
       return;
     }
 
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setTitle(`[${outfit.alias}] ${outfit.name}`)
       .setURL(`https://ps2.fisu.pw/outfit/?name=${outfit.alias}`)
-      .addField('Total members', `${outfit.memberCount}`, true)
-      .addField('Leader', `${outfit.leader}`, true);
+      .addFields([
+        { name: 'Total members', value: `${outfit.memberCount}`, inline: true },
+        { name: 'Leader', value: `${outfit.leader}`, inline: true },
+      ]);
 
     if (outfit.faction.color) {
       embed.setColor(`#${outfit.faction.color}` as HexColorString);

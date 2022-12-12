@@ -1,12 +1,12 @@
 import { Command } from '../types';
 import { consoleCatch } from '../../../utils';
 import { ps2MainOutfit, ps2RestClient } from '../../../app';
-import { HexColorString, MessageEmbed } from 'discord.js';
+import { ChannelType, HexColorString, EmbedBuilder } from 'discord.js';
 
 export async function OnlineCommandHandler (command: Command): Promise<void> {
   console.log('online', command);
   if (!command.discordMessage) throw('Unexpected OnlineCommandHandler command.discordMessage null');
-  if (command.discordMessage.channel.type !== 'GUILD_TEXT' && command.discordMessage.channel.type !== 'DM') throw('unexpected non-text command channel.');
+  if (command.discordMessage.channel.type !== ChannelType.GuildText && command.discordMessage.channel.type !== ChannelType.DM) throw('unexpected non-text command channel.');
 
   const aliasLookup = command.param || ps2MainOutfit.alias || 'BJay';
 
@@ -22,12 +22,14 @@ export async function OnlineCommandHandler (command: Command): Promise<void> {
     .sort((a, b) => a.localeCompare(b, undefined, {ignorePunctuation: true}))
     .join(', ');
 
-  const embed = new MessageEmbed()
+  const embed = new EmbedBuilder()
     .setTitle(`[${onlineOutfit.alias}] ${onlineOutfit.name}`)
     .setURL(`https://ps2.fisu.pw/outfit/?name=${onlineOutfit.alias}`)
-    .addField('Online members', `${onlineOutfit.onlineMembers.length}`, true)
-    .addField('Total members', `${onlineOutfit.memberCount}`, true)
-    .addField('Leader', `${onlineOutfit.leader}`, true);
+    .addFields([
+      { name: 'Online members', value: `${onlineOutfit.onlineMembers.length}`, inline: true },
+      { name: 'Total members', value: `${onlineOutfit.memberCount}`, inline: true },
+      { name: 'Leader', value: `${onlineOutfit.leader}`, inline: true },
+    ]);
 
   if (onlineOutfit.onlineMembers.length) {
     embed.setDescription(`${onlineMembersString}`);

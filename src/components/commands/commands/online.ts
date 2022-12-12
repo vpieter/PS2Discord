@@ -1,4 +1,4 @@
-import { Constants as DiscordConstants, HexColorString, Interaction, MessageEmbed } from 'discord.js';
+import { ApplicationCommandOptionType, EmbedBuilder, HexColorString, Interaction } from 'discord.js';
 import { discordGuild, ps2MainOutfit, ps2RestClient } from '../../../app';
 import { consoleCatch } from '../../../utils';
 
@@ -14,18 +14,18 @@ export class OnlineCommand {
         name: 'outfit-tag',
         description: 'The outfit tag to look up.',
         required: false,
-        type: DiscordConstants.ApplicationCommandOptionTypes.STRING,
+        type: ApplicationCommandOptionType.String,
       }, {
         name: 'public',
         description: 'Posts the response publicly in the current channel if true.',
         required: false,
-        type: DiscordConstants.ApplicationCommandOptionTypes.BOOLEAN,
+        type: ApplicationCommandOptionType.Boolean,
       }],
     });
   }
 
   static async handle(interaction: Interaction) {
-    if (!interaction.isCommand() || interaction.commandName !== 'online') return;
+    if (!interaction.isChatInputCommand() || interaction.commandName !== 'online') return;
 
     const aliasLookup = interaction.options.getString('outfit-tag') || ps2MainOutfit.alias || 'BJay';
     const isPublic = interaction.options.getBoolean('public');
@@ -42,12 +42,14 @@ export class OnlineCommand {
       .sort((a, b) => a.localeCompare(b, undefined, {ignorePunctuation: true}))
       .join(', ');
 
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setTitle(`[${onlineOutfit.alias}] ${onlineOutfit.name}`)
       .setURL(`https://ps2.fisu.pw/outfit/?name=${onlineOutfit.alias}`)
-      .addField('Online members', `${onlineOutfit.onlineMembers.length}`, true)
-      .addField('Total members', `${onlineOutfit.memberCount}`, true)
-      .addField('Leader', `${onlineOutfit.leader}`, true);
+      .addFields([
+        { name: 'Online members', value: `${onlineOutfit.onlineMembers.length}`, inline: true },
+        { name: 'Total members', value: `${onlineOutfit.memberCount}`, inline: true },
+        { name: 'Leader', value: `${onlineOutfit.leader}`, inline: true },
+      ]);
 
     if (onlineOutfit.onlineMembers.length) {
       embed.setDescription(`${onlineMembersString}`);

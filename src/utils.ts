@@ -31,12 +31,4 @@ export function wait<T>(ms: number, value?: T) {
   return new Promise((resolve) => setTimeout(resolve, ms, value));
 }
 
-export async function loadStore<T>(target: T, name: string, mapper?: (raw: T) => T) {
-  let temp = await jsonfile.readFile(`./store/${name}.json`, { throws: false }).catch(voidCatch);
-  if (temp && mapper) {
-    temp = mapper(temp);
-  }
-  Object.assign(target, temp as T);
-}
-
 export type Modify<T, R> = Omit<T, keyof R> & R;

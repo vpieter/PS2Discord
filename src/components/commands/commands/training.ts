@@ -1,7 +1,7 @@
-import { CommandInteraction, Constants as DiscordConstants, Interaction } from 'discord.js';
+import { ApplicationCommandOptionType, ApplicationCommandPermissionType, ChatInputCommandInteraction, Interaction } from 'discord.js';
 import { TrainingTracker } from '../..';
 import { discordClient, discordGuild, runningActivities } from '../../../app';
-import { Activities, DiscordRoleIdLeader, DiscordRoleIdOfficer, DiscordRoleIdSpecialist } from '../../../consts';
+import { Activities, DiscordBotToken, DiscordRoleIdLeader, DiscordRoleIdOfficer, DiscordRoleIdSpecialist } from '../../../consts';
 
 export class TrainingCommand {
   static async register() {
@@ -10,38 +10,41 @@ export class TrainingCommand {
 
     const cmd = await discordGuild.commands.create({
       name: 'training',
-      description: `Manage trainings.`,
-      defaultPermission: false,
+      description: 'Manage trainings.',
+      defaultMemberPermissions: '0',
+      dmPermission: false,
       options: [{
         name: 'start',
         description: 'Start a training.',
-        type: DiscordConstants.ApplicationCommandOptionTypes.SUB_COMMAND,
+        type: ApplicationCommandOptionType.Subcommand,
       }, {
         name: 'stop',
         description: 'Stop a training.',
-        type: DiscordConstants.ApplicationCommandOptionTypes.SUB_COMMAND,
+        type: ApplicationCommandOptionType.Subcommand,
       }],
     });
 
     await cmd.permissions.add({
       permissions: ([DiscordRoleIdLeader, DiscordRoleIdOfficer, DiscordRoleIdSpecialist] as `${bigint}`[]).map(discordId => ({
-        type: DiscordConstants.ApplicationCommandPermissionTypes.ROLE,
+        type: ApplicationCommandPermissionType.Role,
         id: discordId,
         permission: true,
       })),
+      token: DiscordBotToken,
     });
 
     await cmd.permissions.add({
       permissions: (['101347311627534336'] as `${bigint}`[]).map(discordId => ({
-        type: DiscordConstants.ApplicationCommandPermissionTypes.USER,
+        type: ApplicationCommandPermissionType.User,
         id: discordId,
         permission: true,
       })),
+      token: DiscordBotToken,
     });
   }
 
   static async handle(interaction: Interaction) {
-    if (!interaction.isCommand() || interaction.commandName !== 'training') return;
+    if (!interaction.isChatInputCommand() || interaction.commandName !== 'training') return;
 
     await interaction.deferReply({ephemeral: true});
 
@@ -58,7 +61,7 @@ export class TrainingCommand {
     }
   }
 
-  private static async start(interaction: CommandInteraction) {
+  private static async start(interaction: ChatInputCommandInteraction) {
     // guard
     const runningTraining = runningActivities[Activities.Training] as TrainingTracker;
     if (runningTraining) {
@@ -74,7 +77,7 @@ export class TrainingCommand {
     await interaction.editReply({content:'Started a training.'});
   }
 
-  private static async stop(interaction: CommandInteraction) {
+  private static async stop(interaction: ChatInputCommandInteraction) {
     // guard
     const runningTraining = runningActivities[Activities.Training] as TrainingTracker;
     if (!runningTraining) {

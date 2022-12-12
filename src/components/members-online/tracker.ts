@@ -1,4 +1,4 @@
-import { Client as DiscordClient, TextChannel } from 'discord.js';
+import { ActivityType, ChannelType, Client as DiscordClient, TextChannel } from 'discord.js';
 import { debounce } from 'lodash';
 import { ps2MainOutfit } from '../../app';
 import { DiscordChannelIdOutfit } from '../../consts';
@@ -100,7 +100,7 @@ export class MembersOnlineTracker {
 
     this._discordClient.user.setPresence({
       activities: [{
-        type: 'WATCHING',
+        type: ActivityType.Watching,
         name: `${ps2MainOutfit.members.filter(member => member.online).length}/${ps2MainOutfit.memberCount} ${ps2MainOutfit.alias} gays play`,
       }],
       status: 'online',
@@ -123,7 +123,7 @@ export class MembersOnlineTracker {
 
       const channel = await this._discordClient.channels.fetch(DiscordChannelIdOutfit);
       if (!channel) throw(`Unexpected null channel (${DiscordChannelIdOutfit}).`);
-      if (channel.type !== 'GUILD_TEXT') throw(`Cannot set outfit topic in non-text channel (${channel.id}).`);
+      if (channel.type !== ChannelType.GuildText) throw(`Cannot set outfit topic in non-text channel (${channel.id}).`);
 
       await (channel as TextChannel).setTopic(topicText);
     },

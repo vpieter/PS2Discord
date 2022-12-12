@@ -1,6 +1,6 @@
 import { PS2RestClient } from './ps2-rest-client';
 import { ZoneVM, MainOutfitVM, FactionVM, CapturedFacilityVM } from './ps2-rest-client/types';
-import { Client as DiscordClient, ClientUser as DiscordClientUser, Guild as DiscordGuild, Intents as DiscordIntents } from 'discord.js';
+import { Client as DiscordClient, ClientUser as DiscordClientUser, Guild as DiscordGuild, GatewayIntentBits, Partials } from 'discord.js';
 import { ActivityTracker, BaseCapturesTracker, DiscordCommandListener, MainOutfitUpdater, MembersOnlineTracker, OpTracker, TrainingTracker } from './components';
 import { Command } from './components/commands';
 import { Commands } from './components/commands/commands';
@@ -17,14 +17,14 @@ export let ps2MainOutfit: MainOutfitVM;
 export const ps2ControlledBases: Array<CapturedFacilityVM> = [];
 
 export const discordClient = new DiscordClient({
-  intents: new DiscordIntents([
-    DiscordIntents.FLAGS.GUILDS,
-    DiscordIntents.FLAGS.GUILD_MEMBERS,
-    DiscordIntents.FLAGS.GUILD_VOICE_STATES,
-    DiscordIntents.FLAGS.GUILD_MESSAGES,
-    DiscordIntents.FLAGS.DIRECT_MESSAGES,
-  ]),
-  partials: ['CHANNEL'],
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildVoiceStates,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.DirectMessages,
+  ],
+  partials: [Partials.Channel],
 });
 export let discordBotUser: DiscordClientUser;
 export let discordGuild: DiscordGuild;

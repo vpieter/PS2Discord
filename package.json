@@ -33,49 +33,50 @@
   },
   "author": "pieterv",
   "dependencies": {
-    "discord.js": "^13.7.0",
+    "discord.js": "^14.7.1",
     "erlpack": "github:discord/erlpack",
     "grant": "^5.4.21",
     "jsonfile": "^6.1.0",
-    "koa": "^2.13.4",
+    "koa": "^2.14.1",
     "koa-compress": "^5.1.0",
-    "koa-router": "^10.1.1",
+    "koa-router": "^12.0.0",
     "koa-session": "^6.2.0",
     "koa-views": "^8.0.0",
     "lodash": "^4.17.21",
-    "luxon": "^2.4.0",
+    "luxon": "^3.1.1",
     "nunjucks": "^3.2.3",
     "p-queue": "^6.6.2",
     "path": "^0.12.7",
     "typed-rest-client": "^1.8.9",
-    "typescript": "^4.7.2",
-    "ws": "^7.5.8",
-    "xregexp": "^5.1.0",
+    "typescript": "^4.9.4",
+    "ws": "^8.11.0",
+    "xregexp": "^5.1.1",
     "zlib-sync": "^0.1.7"
   },
   "devDependencies": {
-    "@types/express-serve-static-core": "^4.17.28",
+    "@types/express-serve-static-core": "^4.17.31",
     "@types/jsonfile": "^6.1.0",
-    "@types/koa": "^2.13.4",
+    "@types/koa": "^2.13.5",
     "@types/koa-compress": "^4.0.3",
     "@types/koa-router": "^7.4.4",
     "@types/koa-session": "^5.10.6",
-    "@types/lodash": "^4.14.182",
-    "@types/luxon": "^2.3.2",
-    "@types/node": "^16.11.36",
-    "@types/ws": "^7.4.7",
+    "@types/lodash": "^4.14.191",
+    "@types/luxon": "^3.1.0",
+    "@types/node": "^16.18.8",
+    "@types/ws": "^8.5.3",
     "@types/xregexp": "^4.4.0",
-    "@typescript-eslint/eslint-plugin": "^5.26.0",
-    "@typescript-eslint/parser": "^5.26.0",
-    "concurrently": "^7.2.1",
+    "@typescript-eslint/eslint-plugin": "^5.46.0",
+    "@typescript-eslint/parser": "^5.46.0",
+    "concurrently": "^7.6.0",
     "cpx2": "^4.2.0",
-    "eslint": "^8.16.0"
+    "eslint": "^8.29.0"
   },
   "optionalDependencies": {
-    "bufferutil": "^4.0.6",
-    "utf-8-validate": "^5.0.9"
+    "bufferutil": "^4.0.7",
+    "utf-8-validate": "^5.0.10"
   },
   "volta": {
-    "node": "16.15.0"
+    "node": "16.18.1",
+    "npm": "8.19.2"
   }
 }

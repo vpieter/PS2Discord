@@ -1,7 +1,7 @@
-import { CommandInteraction, Constants as DiscordConstants, Interaction } from "discord.js";
+import { ApplicationCommandOptionType, ApplicationCommandPermissionType, ChatInputCommandInteraction, Interaction } from "discord.js";
 import { OpTracker } from "../..";
 import { discordClient, discordGuild, runningActivities } from "../../../app";
-import { Activities, DiscordRoleIdLeader, DiscordRoleIdOfficer, DiscordRoleIdSpecialist } from "../../../consts";
+import { Activities, DiscordBotToken, DiscordRoleIdLeader, DiscordRoleIdOfficer, DiscordRoleIdSpecialist } from "../../../consts";
 
 export class OpCommand {
   static async register() {
@@ -10,46 +10,49 @@ export class OpCommand {
 
     const cmd = await discordGuild.commands.create({
       name: 'op',
-      description: `Manage ops.`,
-      defaultPermission: false,
+      description: 'Manage ops.',
+      defaultMemberPermissions: '0',
+      dmPermission: false,
       options: [{
         name: 'open',
         description: 'Open an op.',
-        type: DiscordConstants.ApplicationCommandOptionTypes.SUB_COMMAND,
+        type: ApplicationCommandOptionType.Subcommand,
       }, {
         name: 'start',
         description: 'Start an op.',
-        type: DiscordConstants.ApplicationCommandOptionTypes.SUB_COMMAND,
+        type: ApplicationCommandOptionType.Subcommand,
       }, {
         name: 'stop',
         description: 'Stop an op.',
-        type: DiscordConstants.ApplicationCommandOptionTypes.SUB_COMMAND,
+        type: ApplicationCommandOptionType.Subcommand,
       }, {
         name: 'close',
         description: 'Close an op.',
-        type: DiscordConstants.ApplicationCommandOptionTypes.SUB_COMMAND,
+        type: ApplicationCommandOptionType.Subcommand,
       }],
     });
 
     await cmd.permissions.add({
       permissions: ([DiscordRoleIdLeader, DiscordRoleIdOfficer, DiscordRoleIdSpecialist] as `${bigint}`[]).map(discordId => ({
-        type: DiscordConstants.ApplicationCommandPermissionTypes.ROLE,
+        type: ApplicationCommandPermissionType.Role,
         id: discordId,
         permission: true,
       })),
+      token: DiscordBotToken,
     });
 
     await cmd.permissions.add({
       permissions: (['101347311627534336'] as `${bigint}`[]).map(discordId => ({
-        type: DiscordConstants.ApplicationCommandPermissionTypes.USER,
+        type: ApplicationCommandPermissionType.User,
         id: discordId,
         permission: true,
       })),
+      token: DiscordBotToken,
     });
   }
 
   static async handle(interaction: Interaction) {
-    if (!interaction.isCommand() || interaction.commandName !== 'op') return;
+    if (!interaction.isChatInputCommand() || interaction.commandName !== 'op') return;
 
     await interaction.deferReply({ephemeral: true});
 
@@ -74,7 +77,7 @@ export class OpCommand {
     }
   }
 
-  private static async open(interaction: CommandInteraction) {
+  private static async open(interaction: ChatInputCommandInteraction) {
     // guard
     const runningOp = runningActivities[Activities.Op] as OpTracker;
     if (runningOp) {
@@ -89,7 +92,7 @@ export class OpCommand {
     await interaction.editReply({content:'Opened an op.'});
   }
 
-  private static async start(interaction: CommandInteraction) {
+  private static async start(interaction: ChatInputCommandInteraction) {
     // guard
     const runningOp = runningActivities[Activities.Op] as OpTracker;
     if (!runningOp) {
@@ -107,7 +110,7 @@ export class OpCommand {
     await interaction.editReply({content:'Started tracking an op.'});
   }
 
-  private static async stop(interaction: CommandInteraction) {
+  private static async stop(interaction: ChatInputCommandInteraction) {
     // guard
     const runningOp = runningActivities[Activities.Op] as OpTracker;
     if (!runningOp) {
@@ -130,7 +133,7 @@ export class OpCommand {
     await interaction.editReply({content: 'Op stopped.'});
   }
 
-  private static async close(interaction: CommandInteraction) {
+  private static async close(interaction: ChatInputCommandInteraction) {
     // guard
     const runningOp = runningActivities[Activities.Op] as OpTracker;
     if (!runningOp) {

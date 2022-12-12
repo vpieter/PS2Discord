@@ -1,7 +1,7 @@
 import { ps2MainOutfit, ps2RestClient, ps2Zones } from '../../app';
 import { DiscordCategoryIdOps, DiscordChannelIdOpsLobby, DiscordChannelIdOps, DiscordChannelIdOpsDebrief } from '../../consts';
 import { wait } from '../../utils';
-import { Client as DiscordClient, Guild as DiscordGuild, Message, MessageEmbed, Snowflake, TextChannel, User, VoiceChannel } from 'discord.js';
+import { Client as DiscordClient, Guild as DiscordGuild, Message, EmbedBuilder, Snowflake, TextChannel, User, VoiceChannel, ChannelType } from 'discord.js';
 import { DateTime, Interval } from 'luxon';
 import { DeathDto, GainExperienceDto } from '../../ps2-streaming-client/types';
 import { PS2StreamingClient } from '../../ps2-streaming-client';
@@ -100,13 +100,13 @@ export class OpTracker {
       }),
       discordClient.channels.fetch(DiscordChannelIdOps).then(channel => {
         if (!channel) throw(`Unexpected null channel (${DiscordChannelIdOps}).`);
-        if (channel.type !== 'GUILD_TEXT') throw('Ops channel should be a text channel.');
+        if (channel.type !== ChannelType.GuildText) throw('Ops channel should be a text channel.');
         this._channel = channel as TextChannel;
         return this._channel;
       }),
       discordClient.channels.fetch(DiscordChannelIdOpsDebrief).then(channel => {
         if (!channel) throw(`Unexpected null channel (${DiscordChannelIdOpsDebrief}).`);
-        if (channel.type !== 'GUILD_TEXT') throw('Ops debrief channel should be a text channel.');
+        if (channel.type !== ChannelType.GuildText) throw('Ops debrief channel should be a text channel.');
         this._debriefChannel = channel as TextChannel;
         return this._debriefChannel;
       }),
@@ -191,11 +191,13 @@ export class OpTracker {
     const exampleText = `[Alpha] SL: KIZZZZ`
     + `\nKIZZZZ best SL no one even close.`;
 
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setTitle(`Debrief: ${dayName} ${dateString} op`)
       .setURL(this._overviewMessage.url)
       .setDescription(descriptionText)
-      .addField(`Example`, exampleText);
+      .addFields([
+        { name: `Example`, value: exampleText },
+      ]);
 
     await this._debriefChannel.send({embeds: [embed]});
   }
@@ -233,7 +235,7 @@ export class OpTracker {
 
   // private methods
   private _createChannel = async (squadName: string, userLimit: number) => {
-    return await this._discordGuild.channels.create(`Op ${squadName}`, { type: 'GUILD_VOICE', userLimit: userLimit, parent: DiscordCategoryIdOps });
+    return await this._discordGuild.channels.create({ name: `Op ${squadName}`, type: ChannelType.GuildVoice, userLimit: userLimit, parent: DiscordCategoryIdOps });
   }
 
   private _removeChannels = async (moveChannelId: Snowflake) => {
@@ -301,13 +303,15 @@ export class OpTracker {
 
     ///
 
-    const reportEmbed = new MessageEmbed()
+    const reportEmbed = new EmbedBuilder()
       .setTitle(`[${ps2MainOutfit.alias}] ${ps2MainOutfit.name} op report.`)
-      .addField(`${participants.length} Participants:`, participantNames, false)
-      .addField(`${this._baseCaptures.length} Base captures`, baseCaptures, false)
-      .addField('Duration', `${duration.toFormat('hh:mm:ss')}`, true)
-      .addField('Continents', continentNames, true)
-      .addField('\u200b', '\u200b');
+      .addFields([
+        { name: `${participants.length} Participants:`, value: participantNames, inline: false },
+        { name: `${this._baseCaptures.length} Base captures`, value: baseCaptures, inline: false },
+        { name: 'Duration', value: `${duration.toFormat('hh:mm:ss')}`, inline: true },
+        { name: 'Continents', value: continentNames, inline: true },
+        { name: '\u200b', value: '\u200b' },
+      ]);
 
     ///
 
@@ -377,14 +381,16 @@ export class OpTracker {
       transportsDescription += `\nPercentage of total: ${this._numberFormatter.format(transportEntry?.scorePercentageOfTotal ?? 0)}%`;
     }
 
-    const soloEmbed = new MessageEmbed()
+    const soloEmbed = new EmbedBuilder()
       .setTitle(`${member.name} op report.`)
       .setURL(this._overviewMessage.url)
-      .addField(`${killEntry?.score.toString(10) ?? '0'} Kills`, killsDescription)
-      .addField(`${reviveEntry?.score.toString(10) ?? '0'} Revives`, revivesDescription)
-      .addField(`${healEntry?.score.toString(10) ?? '0'} Heals`, healsDescription)
-      .addField(`${turretEntry?.score.toString(10) ?? '0'} Mana turret kills`, turretKillsDescription)
-      .addField(`${transportEntry?.score.toString(10) ?? '0'} Transport assists`, transportsDescription);
+      .addFields([
+        { name: `${killEntry?.score.toString(10) ?? '0'} Kills`, value: killsDescription },
+        { name: `${reviveEntry?.score.toString(10) ?? '0'} Revives`, value: revivesDescription },
+        { name: `${healEntry?.score.toString(10) ?? '0'} Heals`, value: healsDescription },
+        { name: `${turretEntry?.score.toString(10) ?? '0'} Mana turret kills`, value: turretKillsDescription },
+        { name: `${transportEntry?.score.toString(10) ?? '0'} Transport assists`, value: transportsDescription },
+      ]);
 
     return soloEmbed;
   }
@@ -453,7 +459,7 @@ export class OpTracker {
     return leaderboard;
   }
 
-  private _addLeaderboardFields = (embed: MessageEmbed, leaderboard: Leaderboard, eventName: string, noRanks: number): void => {
+  private _addLeaderboardFields = (embed: EmbedBuilder, leaderboard: Leaderboard, eventName: string, noRanks: number): void => {
     let fieldText = `\n`;
 
     for (let i=0; i<noRanks; i++) {
@@ -475,7 +481,9 @@ export class OpTracker {
     fieldText += ` with on average ${this._numberFormatter.format(leaderboard.scorePerMinute)} ${eventName.toLowerCase()} per min`;
     fieldText += `*`;
 
-    embed.addField(`${leaderboard.score} ${eventName}`, fieldText, false);
+    embed.addFields([
+      { name: `${leaderboard.score} ${eventName}`, value: fieldText, inline: false },
+    ]);
   }
 
   private _resetListeners = async () => {

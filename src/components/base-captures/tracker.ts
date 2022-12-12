@@ -1,4 +1,4 @@
-import { Client as DiscordClient, Message, MessageEmbed, TextChannel } from 'discord.js';
+import { ChannelType, Client as DiscordClient, Message, EmbedBuilder, TextChannel } from 'discord.js';
 import { debounce, remove, some } from 'lodash';
 import { OpTracker } from '..';
 import { ps2ControlledBases, ps2MainOutfit, ps2RestClient, runningActivities } from '../../app';
@@ -135,14 +135,16 @@ export class BaseCapturesTracker {
   }
 
   private _sendBaseCaptureMessage = async (facility: FacilityVM): Promise<Message> => {
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setTitle(`${ps2MainOutfit.alias} captured ${facility.name}`)
-      .addField('Continent', `${facility.zone.name}`, true)
-      .addField('Type', `${facility.type}`, true);
+      .addFields([
+        { name: 'Continent', value: `${facility.zone.name}`, inline: true },
+        { name: 'Type', value: `${facility.type}`, inline: true },
+      ]);
 
     const channel = await this._discordClient.channels.fetch(DiscordChannelIdFacility);
     if (!channel) throw(`Unexpected null channel (${DiscordChannelIdFacility}).`);
-    if (channel.type !== 'GUILD_TEXT') throw(`Cannot send base capture message in non-text channel (${channel.id}).`);
+    if (channel.type !== ChannelType.GuildText) throw(`Cannot send base capture message in non-text channel (${channel.id}).`);
 
     return await (channel as TextChannel).send({embeds: [embed]});
   }
@@ -150,8 +152,10 @@ export class BaseCapturesTracker {
   private _setBaseCaptureMessageContributors = async (message: Message, contributors: Array<string>): Promise<Message> => {
     if (message.embeds.length === 0) return Promise.reject('updateBaseCaptureEmbed() embed not found.');
 
-    const embed = new MessageEmbed({...message.embeds[0]} as MessageEmbed);
-    embed.addField('Contributors', `${contributors.length}`, true);
+    const embed = new EmbedBuilder({...message.embeds[0].data});
+    embed.addFields([
+      { name: 'Contributors', value:  `${contributors.length}`, inline: true },
+    ]);
     embed.setDescription(contributors.sort((a,b)=>a.localeCompare(b)).join(', '));
     return await message.edit({embeds: [embed]});
   };
@@ -168,7 +172,7 @@ export class BaseCapturesTracker {
 
       const channel = await this._discordClient.channels.fetch(DiscordChannelIdFacility);
       if (!channel) throw(`Unexpected null channel (${DiscordChannelIdFacility}).`);
-      if (channel.type !== 'GUILD_TEXT') throw(`Cannot set base captures topic in non-text channel (${channel.id}).`);
+      if (channel.type !== ChannelType.GuildText) throw(`Cannot set base captures topic in non-text channel (${channel.id}).`);
 
       await (channel as TextChannel).setTopic(topicText);
     },
@@ -241,7 +245,7 @@ export class BaseCapturesTracker {
 
       const channel = await this._discordClient.channels.fetch(DiscordChannelIdFacility);
       if (!channel) throw(`Unexpected null channel (${DiscordChannelIdFacility}).`);
-      if (channel.type !== 'GUILD_TEXT') throw(`Cannot set base captures topic in non-text channel (${channel.id}).`);
+      if (channel.type !== ChannelType.GuildText) throw(`Cannot set base captures topic in non-text channel (${channel.id}).`);
 
       return await (channel as TextChannel).setTopic(topicText);
     },

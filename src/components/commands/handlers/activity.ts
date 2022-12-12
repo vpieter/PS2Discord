@@ -1,5 +1,5 @@
 import { Command } from '../types';
-import { MessageEmbed } from 'discord.js';
+import { EmbedBuilder } from 'discord.js';
 import { filter, map } from 'lodash';
 import { DateTime, Interval } from 'luxon';
 import { activityTracker, ps2MainOutfit } from '../../../app';
@@ -20,9 +20,11 @@ export async function ActivityCommandHandler (command: Command): Promise<void> {
     ? activity.join('\n')
     : 'No active members';
 
-  const activityEmbed = new MessageEmbed()
+  const activityEmbed = new EmbedBuilder()
     .setTitle(`${ps2MainOutfit.alias} member activity`)
-    .addField(`${activity.length} Active members:`, activityString, false);
+    .addFields([
+      { name: `${activity.length} Active members:`, value: activityString, inline: false },
+    ]);
 
   await command.discordMessage.channel.send({embeds: [activityEmbed]});
   return Promise.resolve();

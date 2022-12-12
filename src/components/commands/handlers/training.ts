@@ -2,6 +2,7 @@ import { Command } from '../types';
 import { discordClient, discordGuild, runningActivities } from '../../../app';
 import { Activities, DiscordRoleIdLeader, DiscordRoleIdOfficer, DiscordRoleIdSpecialist } from '../../../consts';
 import { TrainingTracker } from '../..';
+import { ChannelType } from 'discord.js';
 
 export async function TrainingCommandHandler (command: Command): Promise<void> {
   // Staff permission
@@ -21,7 +22,7 @@ export async function TrainingCommandHandler (command: Command): Promise<void> {
   // TrainingCommandHandler
   const runningTraining = runningActivities[Activities.Training] as TrainingTracker;
   if (command.param === 'stop') {
-    if (command.discordMessage?.channel?.type === 'GUILD_TEXT') await command.discordMessage.delete();
+    if (command.discordMessage?.channel?.type === ChannelType.GuildText) await command.discordMessage.delete();
 
     if (!runningTraining) {
       if (command.discordMessage) await command.discordMessage.channel.send('A training is not yet running. Use "/training start" command to start.');
@@ -34,7 +35,7 @@ export async function TrainingCommandHandler (command: Command): Promise<void> {
   }
 
   if (runningTraining) {
-    if (command.discordMessage?.channel?.type === 'GUILD_TEXT') await command.discordMessage.delete();
+    if (command.discordMessage?.channel?.type === ChannelType.GuildText) await command.discordMessage.delete();
     if (command.discordMessage) await command.discordMessage.channel.send('A training is already running. Use "/training stop" command to stop.');
     return;
   }
@@ -45,5 +46,5 @@ export async function TrainingCommandHandler (command: Command): Promise<void> {
   training.start();
 
   runningActivities[Activities.Training] = training;
-  if (command.discordMessage?.channel?.type === 'GUILD_TEXT') await command.discordMessage.delete();
+  if (command.discordMessage?.channel?.type === ChannelType.GuildText) await command.discordMessage.delete();
 }

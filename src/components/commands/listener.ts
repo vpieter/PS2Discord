@@ -2,7 +2,7 @@ import { Command } from './types';
 import { Commands, DiscordCommands } from './commands';
 import { CommandHandlers } from './handlers';
 import { isFunction, keys } from 'lodash';
-import { Message, Client as DiscordClient } from 'discord.js';
+import { Message, Client as DiscordClient, ChannelType } from 'discord.js';
 import XRegExp from 'xregexp';
 import { discordGuild } from '../../app';
 import { DiscordCommandHandlers } from './commands/index';
@@ -75,7 +75,7 @@ export class DiscordCommandListener {
     if (result === null) return;
 
     const { mention=null, commandName=null, param=null } = result;
-    if (discordMessage.channel.type !== 'DM' && mention === null) return;
+    if (discordMessage.channel.type !== ChannelType.DM && mention === null) return;
     if (commandName === null) return;
 
     const discordAuthorId = discordMessage.author.id;
