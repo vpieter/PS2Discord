@@ -149,13 +149,17 @@ export default class MyKoa extends Koa {
 
   staffMiddleware = async (ctx: Koa.ParameterizedContext<Koa.DefaultState, Koa.DefaultContext>, next: Koa.Next) => {
     if (!ctx.state.user.isConnected) return ctx.redirect('/connect/discord');
-    else if (!ctx.state.user.isStaff) return ctx.redirect('/public/unauthorized');
+    else if (!ctx.state.user.isDev) {
+      if (!ctx.state.user.isStaff) return ctx.redirect('/public/unauthorized');
+    }
     await next();
   };
 
   memberMiddleware = async (ctx: Koa.ParameterizedContext<Koa.DefaultState, Koa.DefaultContext>, next: Koa.Next) => {
     if (!ctx.state.user.isConnected) return ctx.redirect('/connect/discord');
-    else if (!ctx.state.user.isMember) return ctx.redirect('/public/unauthorized');
+    else if (!ctx.state.user.isDev) {
+      if (!ctx.state.user.isMember) return ctx.redirect('/public/unauthorized');
+    }
     await next();
   };
 
@@ -183,7 +187,7 @@ export default class MyKoa extends Koa {
       user.name = guildMember.nickname;
       user.color = guildMember.displayHexColor;
 
-      user.isDev = guildMember.id === '101347311627534336';
+      user.isDev = guildMember.user.id === '101347311627534336';
       user.isStaff = guildMember.roles.cache.some(r => staffRoleIds.includes(r.id));
       user.isMember = guildMember.roles.cache.has(DiscordRoleIdMember);
       user.isConnected = true;
