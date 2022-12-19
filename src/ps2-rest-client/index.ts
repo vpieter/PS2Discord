@@ -1,4 +1,4 @@
-import { consoleCatch } from '../utils';
+import { consoleCatch, voidCatch } from '../utils';
 import { ps2Zones, ps2Factions } from '../app';
 import { PS2ApiToken, PS2MainOutfitId } from '../consts';
 import { PS2RestResult, ZoneVM, ZoneDTO, FacilityVM, FacilityDTO, OutfitDTO, OutfitVM, OufitMemberDTO, OnlineOutfitVM, MainOutfitVM, OutfitMemberVM, FactionVM, FactionDTO, CharacterFactionDTO } from './types';
@@ -36,7 +36,8 @@ export class PS2RestClient
     const resultPromise = this._rest.get<PS2RestResult<FactionDTO>>(
       PS2RestRequest.Faction,
       { queryParameters: { params: queryParams }},
-    );
+    ).catch(voidCatch);
+
     const factions = (await resultPromise)?.result?.[PS2RestResultCollections.Faction];
     if (!factions) return Promise.reject(`getFactions() failed.`);
 
@@ -67,7 +68,8 @@ export class PS2RestClient
     const resultPromise = this._rest.get<PS2RestResult<ZoneDTO>>(
       PS2RestRequest.Zone,
       { queryParameters: { params: queryParams }},
-    );
+    ).catch(voidCatch);
+
     const zones = (await resultPromise)?.result?.[PS2RestResultCollections.Zone];
     if (!zones) return Promise.reject(`getZones() failed.`);
 
@@ -98,7 +100,7 @@ export class PS2RestClient
     const resultPromise = this._rest.get<PS2RestResult<FacilityDTO>>(
       PS2RestRequest.MapRegion,
       { queryParameters: { params: queryParams }}
-    );
+    ).catch(voidCatch);
 
     const facilities = (await resultPromise)?.result?.[PS2RestResultCollections.MapRegion];
     if (!facilities?.length) return Promise.reject(`getFacility(${facilityId}) failed.`);
@@ -126,7 +128,7 @@ export class PS2RestClient
     const resultPromise = this._rest.get<PS2RestResult<OutfitDTO>>(
       PS2RestRequest.Outfit,
       { queryParameters: { params: queryParams }},
-    );
+    ).catch(voidCatch);
 
     const outfits = (await resultPromise)?.result?.[PS2RestResultCollections.Outfit];
     if (!outfits?.length) return Promise.reject(`getOufit(${JSON.stringify(lookup)}) failed.`);
@@ -165,7 +167,8 @@ export class PS2RestClient
       const resultPromise = this._rest.get<PS2RestResult<OufitMemberDTO>>(
         PS2RestRequest.OutfitMember,
         { queryParameters: { params: queryParams }},
-      );
+      ).catch(voidCatch);
+
       const outfitMembers = (await resultPromise)?.result?.[PS2RestResultCollections.OutfitMember];
       if (!outfitMembers) return Promise.reject(`getMainOutfit() members not found.`);
 
@@ -209,7 +212,8 @@ export class PS2RestClient
       const resultPromise = this._rest.get<PS2RestResult<OufitMemberDTO>>(
         PS2RestRequest.OutfitMember,
         { queryParameters: { params: queryParams }},
-      );
+      ).catch(voidCatch);
+
       const outfitMembers = (await resultPromise)?.result?.[PS2RestResultCollections.OutfitMember];
       if (!outfitMembers) return Promise.reject(`getOnlineOutfit(${JSON.stringify(lookup)}) members not found.`);
 
@@ -239,7 +243,7 @@ export class PS2RestClient
     const resultPromise = this._rest.get<PS2RestResult<CharacterFactionDTO>>(
       PS2RestRequest.Character,
       { queryParameters: { params: queryParams }},
-    );
+    ).catch(voidCatch);
 
     const characters = (await resultPromise)?.result?.[PS2RestResultCollections.Character];
     if (!characters?.length) return Promise.reject(`getPlayerFaction(${JSON.stringify(lookup)}) failed.`);
